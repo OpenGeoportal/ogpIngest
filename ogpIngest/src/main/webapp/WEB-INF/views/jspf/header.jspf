@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<!-- Force latest IE rendering engine or ChromeFrame if installed -->
+<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
+<!-- Bootstrap CSS Toolkit styles -->
+<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/css/bootstrap-combined.min.css"/>
+<!-- Generic page styles -->
+<link rel="stylesheet" href="<c:url value="/resources/css/style.css" />">
+<!-- Bootstrap styles for responsive website layout, supporting different screen sizes -->
+<!--<link rel="stylesheet" href="http://blueimp.github.com/cdn/css/bootstrap-responsive.min.css"/>-->
+<!-- Bootstrap CSS fixes for IE6 -->
+<!--[if lt IE 7]><link rel="stylesheet" href="<c:url value="/resources/css/bootstrap-ie6.min.css" />"><![endif]-->
+<!-- Bootstrap Image Gallery styles -->
+<!-- <link rel="stylesheet" href="http://blueimp.github.com/Bootstrap-Image-Gallery/css/bootstrap-image-gallery.min.css" />-->
+<!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
+<link rel="stylesheet" href="<c:url value="/resources/css/jquery.fileupload-ui.css" />">
+<link href="<c:url value="/resources/form.css" />" rel="stylesheet"
+	type="text/css" />
+<script type="text/javascript"
+	src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript"
+	src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+	
+<script type="text/javascript"
+	src="<c:url value="/resources/javascript/jqueryform/2.8/jquery.form.js" />"></script>
+<!-- Shim to make HTML5 elements usable in older Internet Explorer versions -->
+<!--[if lt IE 9]><script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+<!-- The Templates plugin is included to render the upload/download listings -->
+<script src="http://blueimp.github.com/JavaScript-Templates/tmpl.min.js"></script>
+<!-- Bootstrap JS and Bootstrap Image Gallery are not required, but included for the demo -->
+<script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/js/bootstrap.min.js"></script>
+<!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
+<script src="<c:url value="/resources/javascript/jquery.iframe-transport.js" />"></script>
+<!-- The basic File Upload plugin -->
+<script src="<c:url value="/resources/javascript/jquery.fileupload.js" />"></script>
+<!-- The File Upload file processing plugin -->
+<script src="<c:url value="/resources/javascript/jquery.fileupload-fp.js" />"></script>
+<!-- The File Upload user interface plugin -->
+<script src="<c:url value="/resources/javascript/jquery.fileupload-ui.js" />"></script>
+<!-- The localization script -->
+<script src="<c:url value="/resources/javascript/locale.js" />"></script>
+<!-- The main application script -->
+<script src="<c:url value="/resources/javascript/main.js" />"></script>
+<!-- The XDomainRequest Transport is included for cross-domain file deletion for IE8+ -->
+<!--[if gte IE 8]><script src="javascript/cors/jquery.xdr-transport.js"></script><![endif]-->

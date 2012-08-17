@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+              xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-2.5.xsd http://www.springframework.org/schema/aop 
+           http://www.springframework.org/schema/aop/spring-aop-2.0.xsd">
+
+	<bean id="projectPropertyConfigurer"
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location" value="WEB-INF/ingest.properties" />
+	</bean>
+
+<!-- The Logger Injector -->
+ 
+<bean id="loggerInjector" class="org.OpenGeoPortal.Utilities.LoggerPostProcessor" />
+
+<bean id="taskExecutor" class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
+  <property name="corePoolSize" value="5" />
+  <property name="maxPoolSize" value="10" />
+  <property name="queueCapacity" value="25" />
+</bean>
+
+<bean id="ingestStatusManager" class="org.OpenGeoPortal.Ingest.GenericIngestStatusManager">
+</bean>
+
+<bean id="uploadMetadataJobSubmitter" class="org.OpenGeoPortal.Ingest.BasicMetadataUploadSubmitter" >
+    	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+    	<property name="asyncTaskExecutor" ref="taskExecutor"/>
+</bean>
+
+<bean id="remoteSolrJobSubmitter" class="org.OpenGeoPortal.Ingest.BasicRemoteSolrIngestSubmitter" >
+    	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+    	<property name="asyncTaskExecutor" ref="taskExecutor"/>
+</bean>
+
+<bean id="bartonJobSubmitter" class="org.OpenGeoPortal.Ingest.BartonIngestSubmitter" >
+    	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+    	<property name="asyncTaskExecutor" ref="taskExecutor"/>
+</bean>
+
+<bean id="preprocessorJobSubmitter" class="org.OpenGeoPortal.Ingest.MitMetadataPreprocessorSubmitter" >
+    	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+    	<property name="asyncTaskExecutor" ref="taskExecutor"/>
+</bean>
+
+ <bean id="solrIngest.ows" class="org.OpenGeoPortal.Ingest.OwsSolrIngest">
+    	<property name="solrClient" ref="solrClient.solrJ"/>
+    	<property name="ingestProperties" ref="ingestProperties.propFile"/>
+  </bean>
+  
+   <bean id="solrIngest.paper" class="org.OpenGeoPortal.Ingest.PaperSolrIngest">
+    	<property name="solrClient" ref="solrClient.solrJ"/>
+  </bean>
+  
+  <bean id="solrClient.solrJ" class="org.OpenGeoPortal.Solr.SolrJClient">
+  		<constructor-arg type="java.lang.String" value="${local.solrUrl}"/>
+  </bean>
+  <bean id="geoserverIngest" class="org.OpenGeoPortal.Ingest.SimpleGeoServerIngest">
+    	<property name="ingestProperties" ref="ingestProperties.propFile"/>
+  </bean>
+    <bean id="metadataConverter.flexible" class="org.OpenGeoPortal.Ingest.Metadata.FlexibleMetadataConverter">
+    	<property name="ingestProperties" ref="ingestProperties.propFile"/>
+    	<property name="metadataParseMethodProvider" ref="metadataParseMethodProvider.xml"/>
+  </bean>
+    <bean id="metadataParseMethodProvider.xml" class="org.OpenGeoPortal.Ingest.Metadata.XmlMetadataParseMethodProvider">
+  </bean>
+    <bean id="parseMethod.FGDC" class="org.OpenGeoPortal.Ingest.Metadata.FgdcParseMethod">
+  </bean>
+    <bean id="parseMethod.ISO_19139" class="org.OpenGeoPortal.Ingest.Metadata.IsoParseMethod">
+  </bean>
+   <bean id="extraTasks" class="org.OpenGeoPortal.Ingest.DatabaseTasks">
+  </bean>
+   <bean id="ingestProperties.propFile" class="org.OpenGeoPortal.Ingest.PropertyFileIngestProperties">
+	<property name="resource" value="WEB-INF/ingest.properties"/>
+  </bean>
+  <bean id="metadataAdjustProperties.propFile" class="org.OpenGeoPortal.Ingest.PropertyFileMetadataAdjusterProperties">
+	<property name="resource" value="WEB-INF/metadataAdjust.properties"/>
+  </bean>
+  <bean id="uploadMetadataJob" class="org.OpenGeoPortal.Ingest.BasicUploadMetadataJob" scope="prototype">
+  	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+  	<property name="metadataConverter" ref="metadataConverter.flexible"/>
+  	<property name="mapServerIngest" ref="geoserverIngest"/>
+  	<property name="solrIngest" ref="solrIngest.ows"/>
+  	<property name="extraTasks" ref="extraTasks"/>
+  	<property name="ingestProperties" ref="ingestProperties.propFile"/>
+  </bean>
+  <bean id="remoteSolrIngestJob" class="org.OpenGeoPortal.Ingest.BasicRemoteSolrIngestJob" scope="prototype">
+  	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+  	<property name="solrClient" ref="solrClient.solrJ"/>
+  </bean>
+   <bean id="bartonIngestJob" class="org.OpenGeoPortal.Ingest.BartonIngestJob" scope="prototype">
+   	<property name="solrIngest" ref="solrIngest.paper" />
+  	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+  	<property name="solrClient" ref="solrClient.solrJ"/>
+  </bean>
+    <bean id="metadataPreprocessorJob.mit" class="org.OpenGeoPortal.Ingest.MitMetadataPreprocessorJob" scope="prototype">
+  	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+  	<property name="metadataConverter" ref="metadataConverter.flexible"/>
+  	<property name="solrIngest" ref="solrIngest.ows"/>
+  	 <property name="ingestProperties" ref="ingestProperties.propFile"/>
+  </bean>
+</beans>

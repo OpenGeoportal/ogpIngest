@@ -1,0 +1,29 @@
+@charset 'UTF-8';
+/*
+ * jQuery File Upload Plugin CSS Example 1.0
+ * https://github.com/blueimp/jQuery-File-Upload
+ *
+ * Copyright 2012, Sebastian Tschan
+ * https://blueimp.net
+ *
+ * Licensed under the MIT license:
+ * http://www.opensource.org/licenses/MIT
+ */
+
+.span4{
+    line-height: 40px;
+}
+
+#mainLogo{
+	margin-left:-20px;
+}
+
+.navbar-inner {
+	background-color: #B4E0F5;
+	background-image: none;
+}
+
+.navbar img {
+	max-height: 40px;
+}
+

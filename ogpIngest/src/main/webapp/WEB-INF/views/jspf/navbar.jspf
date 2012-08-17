@@ -1,0 +1,38 @@
+<%@ taglib prefix="security" uri="http://www.springframework.org/security/tags" %>
+    <div class="navbar">
+    <div class="navbar-inner">
+    <div class="container">
+    <img id="mainLogo" src="<c:url value="/resources/media/logo.png"/>" alt="OGP Ingest"/>
+    <div class="btn-group pull-right">
+		<a class="btn dropdown-toggle" href="#" data-toggle="dropdown">
+		<i class="icon-user"></i>
+		<security:authentication property="principal.username" />
+		<span class="caret"></span>
+		</a>
+		<ul class="dropdown-menu">
+			<li>
+			<a href="<c:url value="j_spring_security_logout" />">Sign Out</a>
+			</li>
+		</ul>
+	</div>
+    </div>
+    </div>
+    </div>
+<div class="container-fluid">
+<div class="row-fluid">
+<div class="span2">
+<div id="sidebar-nav well">
+<ol class="nav nav-list">
+ <li class="nav-header">
+Ingest Actions
+</li>
+<li id="preprocessNav"><a href="adjustMetadata">Preprocess Metadata</a><li/>
+<li id="xmluploadNav"><a href="metadataUpload">Upload Metadata</a><li/>
+<li id="externalSolrNav"><a href="ingestExternalSolr">Ingest Records from Remote Solr Instance</a><li/>
+<li id="bartonNav"><a href="ingestBarton">Ingest Map Records</a><li/>
+<li id="deleteNav"><a href="solrDelete">Delete Solr Layers</a><li/>
+</ol>
+</div>
+</div>
+<div class="span10">
+<div class="row-fluid">
