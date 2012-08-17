@@ -8,7 +8,7 @@
 
     <http pattern="/resources/**" security="none" />
      
-	<http use-expressions="true">
+	<http use-expressions="true" access-denied-page="/accessDenied">
 	    <intercept-url pattern="/login*" access="permitAll"/>  
     	<intercept-url pattern="/solrDelete" access="hasRole('administrator')"/>
     	<form-login login-page="/login" default-target-url="/metadataUpload" authentication-failure-url="/loginfailed" />

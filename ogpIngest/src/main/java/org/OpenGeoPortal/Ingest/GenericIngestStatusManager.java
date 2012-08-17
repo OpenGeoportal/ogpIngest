@@ -35,7 +35,7 @@ public class GenericIngestStatusManager implements IngestStatusManager {
 		if (!sessionStatus.isEmpty()){
 			globalIngestStatus.removeAll(sessionStatus);
 		} else {
-			logger.info("No status objects found for this session: " + sessionId);
+			logger.debug("No status objects found for this session: " + sessionId);
 		}
 		
 	}

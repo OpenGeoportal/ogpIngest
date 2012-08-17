@@ -1,4 +1,4 @@
-<%@include file="jspf/header.jspf"%>
+<%@include file="jspf/simpleheader.jspf"%>
 <title>OGP Ingest | Login</title>
 </head>
 <body>
@@ -25,7 +25,7 @@
 	<form name='f' action="<c:url value='j_spring_security_check' />" method='POST'>
 		
     <div class="row">
-    <div class="span4"><label>User: </label><input type='text' name='j_username' value=''></div>
+    <div class="span4"><label>User: </label><input type='text' name='j_username' <c:if test="${not empty error}">value='${sessionScope["SPRING_SECURITY_LAST_USERNAME_KEY"]}'</c:if> /></div>
     </div>
     <div class="row">
     <div class="span4"><label>Password: </label><input type='password' name='j_password' /></div>

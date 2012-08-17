@@ -30,7 +30,7 @@ final Logger logger = LoggerFactory.getLogger(this.getClass());
 	
 public void sessionCreated(HttpSessionEvent httpSessionEvent) {
 	// not doing anything here for now
-	logger.info("new session created");
+	logger.debug("new session created");
 }	
 
 
