@@ -1,0 +1,11 @@
+				<label for="institution">
+					<h4>Institution (select one)</h4>
+				</label>
+				<select id="institution" name="institution">
+					<option value="Tufts">Tufts</option>
+					<option value="Harvard">Harvard</option>
+					<option value="MIT">MIT</option>
+					<option value="MassGIS">MassGIS</option>
+					<option value="Berkeley">Berkeley</option>
+					<option value="Maryland">Maryland</option>
+				</select>
