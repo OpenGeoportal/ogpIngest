@@ -49,7 +49,6 @@ public class MetadataUploadController {
         elementMap.put("access", MetadataElement.Access);
         elementMap.put("themekey", MetadataElement.ThemeKeywords);
         elementMap.put("placekey", MetadataElement.PlaceKeywords);
-
     }
 
 	@ModelAttribute

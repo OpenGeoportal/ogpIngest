@@ -12,6 +12,8 @@ public class SolrRecord {
 	String name;
 	@Field("CollectionId")
 	String collectionId;
+	@Field("ExternalLayerId")
+	String externalLayerId;
 	@Field("Institution")
 	String institution;
 	@Field("InstitutionSort")
@@ -20,22 +22,14 @@ public class SolrRecord {
 	String access;
 	@Field("DataType")
 	String dataType;
-	@Field("DataTypeSort")
-	String dataTypeSort;
 	@Field("Availability")
 	String availability;
 	@Field("LayerDisplayName")
 	String layerDisplayName;
-	@Field("LayerDisplayNameSort")
-	String layerDisplayNameSort;
 	@Field("Publisher")
 	String publisher;
-	@Field("PublisherSort")
-	String publisherSort;
 	@Field("Originator")
 	String originator;
-	@Field("OriginatorSort")
-	String originatorSort;
 	@Field("ThemeKeywords")
 	String themeKeywords;
 	@Field("PlaceKeywords")
@@ -88,6 +82,12 @@ public class SolrRecord {
 	public void setCollectionId(String collectionId) {
 		this.collectionId = collectionId;
 	}
+	public String getExternalLayerId() {
+		return externalLayerId;
+	}
+	public void setExternalLayerId(String externalLayerId) {
+		this.externalLayerId = externalLayerId;
+	}
 	public String getInstitution() {
 		return institution;
 	}
@@ -112,12 +112,6 @@ public class SolrRecord {
 	public void setDataType(String dataType) {
 		this.dataType = dataType;
 	}
-	public String getDataTypeSort() {
-		return dataTypeSort;
-	}
-	public void setDataTypeSort(String dataTypeSort) {
-		this.dataTypeSort = dataTypeSort;
-	}
 	public String getAvailability() {
 		return availability;
 	}
@@ -130,35 +124,17 @@ public class SolrRecord {
 	public void setLayerDisplayName(String layerDisplayName) {
 		this.layerDisplayName = layerDisplayName;
 	}
-	public String getLayerDisplayNameSort() {
-		return layerDisplayNameSort;
-	}
-	public void setLayerDisplayNameSort(String layerDisplayNameSort) {
-		this.layerDisplayNameSort = layerDisplayNameSort;
-	}
 	public String getPublisher() {
 		return publisher;
 	}
 	public void setPublisher(String publisher) {
 		this.publisher = publisher;
 	}
-	public String getPublisherSort() {
-		return publisherSort;
-	}
-	public void setPublisherSort(String publisherSort) {
-		this.publisherSort = publisherSort;
-	}
 	public String getOriginator() {
 		return originator;
 	}
 	public void setOriginator(String originator) {
 		this.originator = originator;
-	}
-	public String getOriginatorSort() {
-		return originatorSort;
-	}
-	public void setOriginatorSort(String originatorSort) {
-		this.originatorSort = originatorSort;
 	}
 	public String getThemeKeywords() {
 		return themeKeywords;

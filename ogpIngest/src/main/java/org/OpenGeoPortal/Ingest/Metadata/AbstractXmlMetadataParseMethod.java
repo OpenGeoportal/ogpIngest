@@ -16,6 +16,7 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
+import org.OpenGeoPortal.Layer.BoundingBox;
 import org.OpenGeoPortal.Utilities.OgpLogger;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public abstract class AbstractXmlMetadataParseMethod {
 	/**
 	 * the keys to the state hash that the Solr file is generated from
 	 */
-	public static enum FieldType {Single, Multiple};
+	public static enum FieldType {Single, Multiple, Attribute};
 	public interface Tag{
 			String getTagName();
 			FieldType getFieldType();
@@ -110,7 +111,7 @@ public abstract class AbstractXmlMetadataParseMethod {
 	protected String getDocumentValues(String tagName) throws Exception
 	{
 		NodeList nodes = document.getElementsByTagName(tagName);
-		//logger.info(" tagName = " + tagName + " nodes length = " + nodes.getLength());
+		logger.debug(" tagName = " + tagName + " nodes length = " + nodes.getLength());
 		if (nodes.getLength() == 0)
 		{
 			throw new NullPointerException();
@@ -141,7 +142,6 @@ public abstract class AbstractXmlMetadataParseMethod {
 	
 	/**
 	 * return the first value for the passed tag
-	 * @param document
 	 * @param tagName
 	 * @return
 	 * @throws Exception 
@@ -150,6 +150,7 @@ public abstract class AbstractXmlMetadataParseMethod {
 	{
 		String tagValue = "";
 		NodeList nodes = document.getElementsByTagName(tagName);
+		logger.debug(" tagName = " + tagName + " nodes length = " + nodes.getLength());
 		if (nodes.getLength() == 0){
 			tagValue = null;
 		} else {
@@ -296,5 +297,14 @@ public abstract class AbstractXmlMetadataParseMethod {
 			logger.error("Problem processing full text: " + e.getMessage());
 		}
 		return null;
+	}
+	
+	protected Boolean validateBounds(String minX, String minY, String maxX, String maxY){
+		BoundingBox bounds = new BoundingBox(minX, minY, maxX, maxY);
+		if (bounds.isValid()){
+			return true;
+		} else {
+			return false;
+		}
 	}
 }
