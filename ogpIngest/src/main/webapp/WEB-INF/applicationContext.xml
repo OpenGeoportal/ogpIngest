@@ -75,7 +75,7 @@
   </bean>
     <bean id="parseMethod.FGDC" class="org.OpenGeoPortal.Ingest.Metadata.FgdcParseMethod">
   </bean>
-    <bean id="parseMethod.ISO_19139" class="org.OpenGeoPortal.Ingest.Metadata.IsoParseMethod">
+    <bean id="parseMethod.ISO_19139" class="org.OpenGeoPortal.Ingest.Metadata.Iso19139ParseMethod">
   </bean>
    <bean id="extraTasks" class="org.OpenGeoPortal.Ingest.DatabaseTasks">
   </bean>

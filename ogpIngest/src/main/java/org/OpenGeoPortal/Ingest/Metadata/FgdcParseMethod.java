@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.OpenGeoPortal.Layer.AccessLevel;
-import org.OpenGeoPortal.Layer.BoundingBox;
 import org.OpenGeoPortal.Layer.GeometryType;
 import org.OpenGeoPortal.Layer.PlaceKeywords;
 import org.OpenGeoPortal.Layer.ThemeKeywords;
@@ -87,15 +86,6 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 		} catch (Exception e){
 			logger.error("handleBounds: " + e.getMessage());
 			this.metadataParseResponse.addWarning(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
-		}
-	}
-	
-	Boolean validateBounds(String minX, String minY, String maxX, String maxY){
-		BoundingBox bounds = new BoundingBox(minX, minY, maxX, maxY);
-		if (bounds.isValid()){
-			return true;
-		} else {
-			return false;
 		}
 	}
 	
@@ -239,25 +229,7 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 			//throw new Exception(e.getMessage());
 		}
 	}*/
-	
-	/*void handleKeywords(){		
-		try{
-			List<ThemeKeywords> themeKeywords = populateThemeKeywords();
-			this.metadataParseResponse.metadata.setThemeKeywords(themeKeywords);
-		} catch (Exception e){
-			logger.error("handleThemeKeywords: " + e.getMessage());
-			this.metadataParseResponse.addWarning(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
-		}
-		
-		try{
-			String placeKeywordsString = cleanValue(getDocumentValue(tag));
-			String[] placeKeywords = placeKeywordsString.split(" ");
-			this.metadataParseResponse.metadata.setPlaceKeywords(placeKeywords);
-		} catch (Exception e){
-			logger.error("handlePlaceKeywords: " + e.getMessage());
-			this.metadataParseResponse.addWarning(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
-		}
-	}*/
+
 
 	/**
 	 * get the content date which could be in one of three different tags

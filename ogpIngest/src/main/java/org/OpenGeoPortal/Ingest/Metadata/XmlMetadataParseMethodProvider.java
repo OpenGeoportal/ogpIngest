@@ -4,6 +4,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
 import org.w3c.dom.Document;
+import org.w3c.dom.NodeList;
 
 public class XmlMetadataParseMethodProvider implements MetadataParseMethodProvider, BeanFactoryAware {
 	
@@ -24,10 +25,15 @@ public class XmlMetadataParseMethodProvider implements MetadataParseMethodProvid
 		try {
 			//  <gmd:metadataStandardName>
 			//  <gmd:spatialRepresentationInfo>
-			//existence of these two tags (igoring namespace) should be good enough
-			if ((document.getElementsByTagNameNS("*", "metadataStandardName").getLength() > 0)&&
-					(document.getElementsByTagNameNS("*", "metadataStandardName").getLength() > 0)){
-				metadataType = MetadataType.ISO_19139;
+			  //<gmd:metadataStandardName>
+			  //  <gco:CharacterString>ISO 19115:2003/19139</gco:CharacterString>
+			  //</gmd:metadataStandardName>
+			//existence of these two tags (ignoring namespace) should be good enough
+			NodeList standardNodes = document.getElementsByTagNameNS("*", "metadataStandardName");
+			if (standardNodes.getLength() > 0){
+				if (standardNodes.item(0).getTextContent().contains("19139")){
+					metadataType = MetadataType.ISO_19139;
+				}
 			}
 		} catch (Exception e){/*ignore*/}
 
