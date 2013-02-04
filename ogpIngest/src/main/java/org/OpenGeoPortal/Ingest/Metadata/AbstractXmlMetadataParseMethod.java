@@ -141,7 +141,6 @@ public abstract class AbstractXmlMetadataParseMethod {
 	
 	/**
 	 * return the first value for the passed tag
-	 * @param document
 	 * @param tagName
 	 * @return
 	 * @throws Exception 

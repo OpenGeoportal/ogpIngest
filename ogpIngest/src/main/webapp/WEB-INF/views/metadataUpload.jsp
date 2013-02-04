@@ -15,16 +15,8 @@ Use this page to ingest FGDC metadata files into GeoServer (Local layers only) a
 			<div class="header">
 		  		<h4></h4>
 			</div>
-				<label for="institution">
-					<h4>Institution (select one)</h4>
-				</label>
-				<select id="institution" name="institution">
-					<option value="MIT">MIT</option>
-					<option value="Harvard">Harvard</option>
-					<option value="Tufts">Tufts</option>
-					<option value="MassGIS">MassGIS</option>
-					<option value="Berkeley">Berkeley</option>
-				</select>
+
+				<%@include file="jspf/institutions.jspf"%>
 				
 			<div class="control-group">
 				<label class="radio inline"><input type="radio" name="ingestOption" value="both" CHECKED />Ingest to GeoServer and Solr</label>
@@ -45,39 +37,40 @@ Use this page to ingest FGDC metadata files into GeoServer (Local layers only) a
 						Title
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="publisher" name="requiredFields">
+						<input type="checkbox" value="publisher" name="requiredFields" checked>
 						Publisher
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="originator" name="requiredFields">
+						<input type="checkbox" value="originator" name="requiredFields" checked>
 						Originator
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="abstract" name="requiredFields">
+						<input type="checkbox" value="abstract" name="requiredFields" checked>
 						Abstract
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="dataType" name="requiredFields">
+						<input type="checkbox" value="dataType" name="requiredFields" checked>
 						Data Type
 					</label>
+					<br/>
 					<label class="checkbox inline">
-						<input type="checkbox" value="themekey" name="requiredFields">
+						<input type="checkbox" value="themekey" name="requiredFields" checked>
 						Theme Keywords
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="placekey" name="requiredFields">
+						<input type="checkbox" value="placekey" name="requiredFields" checked>
 						Place Keywords
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="contentdate" name="requiredFields">
+						<input type="checkbox" value="contentdate" name="requiredFields" checked>
 						Content Date
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="bounds" name="requiredFields">
+						<input type="checkbox" value="bounds" name="requiredFields" checked>
 						Bounds
 					</label>
 					<label class="checkbox inline">
-						<input type="checkbox" value="access" name="requiredFields">
+						<input type="checkbox" value="access" name="requiredFields" checked>
 						Access
 					</label>
 					<p class="help-block span10">

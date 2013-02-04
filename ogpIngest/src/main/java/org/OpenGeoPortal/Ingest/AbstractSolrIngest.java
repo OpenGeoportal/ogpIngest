@@ -1,21 +1,24 @@
 package org.OpenGeoPortal.Ingest;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.BoundingBox;
 import org.OpenGeoPortal.Layer.GeometryType;
 import org.OpenGeoPortal.Layer.Metadata;
+import org.OpenGeoPortal.Layer.PlaceKeywords;
+import org.OpenGeoPortal.Layer.PlaceKeywords.PlaceKeywordAuthority;
+import org.OpenGeoPortal.Layer.ThemeKeywords;
+import org.OpenGeoPortal.Layer.ThemeKeywords.ThemeKeywordAuthority;
 import org.OpenGeoPortal.Solr.SolrClient;
 import org.OpenGeoPortal.Solr.SolrRecord;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * This class ingests metadata into Solr from Metadata objects  
- * Functions in this class are called from web page in tufts/ingestHandler.jsp
- * 
+ * This class ingests metadata into Solr from Metadata objects    
  *  
  * @author smcdon08, chrissbarnett
  *
@@ -70,6 +73,15 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			return solrIngestResponse;
 		}
 		
+		public SolrIngestResponse writeToSolr(Metadata metadata) throws Exception {
+			Set<MetadataElement> requiredElements = new HashSet<MetadataElement>();
+			requiredElements.add(MetadataElement.LayerId);
+			requiredElements.add(MetadataElement.LayerName);
+			requiredElements.add(MetadataElement.Title);
+
+			return writeToSolr(metadata, requiredElements);
+		}
+		
 		public SolrIngestResponse writeToSolr(Metadata metadata, Set<MetadataElement> requiredElements) throws Exception {
 			setRequiredElements(requiredElements);
 			setMetadata(metadata);
@@ -98,10 +110,23 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			SolrRecord solrRecord = solrIngestResponse.solrRecord;
 			String institution = metadata.getInstitution();
 
-			solrRecord.setName(processName());
-			solrRecord.setLayerId(processLayerId(institution));
-			solrRecord.setInstitution(institution);
-
+			try {
+				solrRecord.setName(processName());
+			} catch (Exception e){
+				solrIngestResponse.addError("LayerName", "Name", "Unspecified error setting value.", "");
+			}
+			try {
+				solrRecord.setLayerId(processLayerId(institution));
+			} catch (Exception e){
+				solrIngestResponse.addError("LayerId", "LayerId", "Unspecified error setting value.", "");
+			}
+			try{
+				solrRecord.setInstitution(institution);
+			} catch (Exception e){
+				solrIngestResponse.addError("Institution", "Institution", "Unspecified error setting value.", "");
+			}
+			
+			try{
 			if (processBounds()){
 				solrRecord.setMinX(processMinX());
 				solrRecord.setMaxX(processMaxX());
@@ -117,55 +142,95 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				
 				solrRecord.setArea(processArea());
 			}
-			solrRecord.setContentDate(processContentDate());
-
-			solrRecord.setThemeKeywords(processThemeKeywords());
-
-			solrRecord.setPlaceKeywords(processPlaceKeywords());
-			
-			solrRecord.setAccess(processAccess());
-
+			} catch (Exception e){
+				solrIngestResponse.addError("Bounds", "bounds", "Unspecified error setting value.", "");
+			}
+			try{
+				solrRecord.setContentDate(processContentDate());
+			} catch (Exception e){
+				solrIngestResponse.addError("Content Date", "Date", "Unspecified error setting value.", "");
+			}
+			try{
+				solrRecord.setThemeKeywords(processThemeKeywords());
+			} catch (Exception e){
+				solrIngestResponse.addError("Theme Keywords", "themekeywords", "Unspecified error setting value.", "");
+				e.printStackTrace();
+			}
+			try{
+				solrRecord.setPlaceKeywords(processPlaceKeywords());
+			} catch (Exception e){
+				solrIngestResponse.addError("Place Keywords", "placekeywords", "Unspecified error setting value.", "");
+			}
+			try{
+				solrRecord.setAccess(processAccess());
+			} catch (Exception e){
+				solrIngestResponse.addError("Access", "Access", "Unspecified error setting value.", "");
+			}
+			try{
 			String publisher = processPublisher();
 			solrRecord.setPublisher(publisher);
-			solrRecord.setPublisherSort(publisher);
-
+			} catch (Exception e){
+				solrIngestResponse.addError("Publisher", "Publisher", "Unspecified error setting value.", "");
+			}
+			try{
 			String originator = processOriginator();
 			solrRecord.setOriginator(originator);
-			solrRecord.setOriginatorSort(originator);
-
+			} catch (Exception e){
+				solrIngestResponse.addError("Originator", "Originator", "Unspecified error setting value.", "");
+			}
+			try{
 			String dataType = processDataType();
 			solrRecord.setDataType(dataType);
-			solrRecord.setDataTypeSort(dataType);
-
+			} catch (Exception e){
+				solrIngestResponse.addError("Data type", "DataType", "Unspecified error setting value.", "");
+			}
+			try{
 			String layerDisplayName = processTitle();
 			solrRecord.setLayerDisplayName(layerDisplayName);
-			solrRecord.setLayerDisplayNameSort(layerDisplayName);
-
+			} catch (Exception e){
+				solrIngestResponse.addError("Title", "LayerDisplayName", "Unspecified error setting value.", "");
+			}
+			try{
 			solrRecord.setFgdcText(processFullText());
-
+			} catch (Exception e){
+				solrIngestResponse.addError("Full Text", "FgdcText", "Unspecified error setting value.", "");
+			}
+			try{
 			solrRecord.setDescription(processDescription());
-			
+			} catch (Exception e){
+				solrIngestResponse.addError("Description", "Abstract", "Unspecified error setting value.", "");
+			}
+			try{
 			solrRecord.setAvailability(processAvailability());
-		
+			} catch (Exception e){
+				solrIngestResponse.addError("Availability", "Availability", "Unspecified error setting value.", "");
+			}
+			try{
 			solrRecord.setCollectionId(processCollectionId());
-			
+			} catch (Exception e){
+				solrIngestResponse.addError("CollectionId", "CollectionId", "Unspecified error setting value.", "");
+			}
+			try{
 			solrRecord.setGeoreferenced(processGeoreferenced());
-
+			} catch (Exception e){
+				solrIngestResponse.addError("Georeferenced", "Georeferenced", "Unspecified error setting value.", "");
+			}
+			try{
 			solrRecord.setLocation(processLocation());
-						
+			} catch (Exception e){
+				solrIngestResponse.addError("Location", "Location", "Unspecified error setting value.", "");
+			}		
+			try{
 			solrRecord.setWorkspaceName(processWorkspaceName());
-
+			} catch (Exception e){
+				solrIngestResponse.addError("WorkspaceName", "WorkspaceName", "Unspecified error setting value.", "");
+			}
 			return solrIngestResponse;
 		}
 		
 		private String processWorkspaceName() {
 			return metadata.getWorkspaceName();
 		}
-
-		/*private String processSrsProjectionCode() {
-			// TODO Auto-generated method stub
-			return "obsolete";
-		}*/
 
 		abstract public String processGeoreferenced();
 
@@ -187,45 +252,139 @@ public abstract class AbstractSolrIngest implements SolrIngest
 		  return out.toString();
 		}
 		
-		private String processPlaceKeywords() throws SolrValidationException {
-			String placeKeywordsValue = "";
-			String[] placeKeywords = metadata.getPlaceKeywords();
-			if (placeKeywords == null){
-				placeKeywords = new String[0];
-			}
-			if (placeKeywords.length > 0){
-				placeKeywordsValue = combine(placeKeywords, " ");
-			}
-			if (placeKeywordsValue.isEmpty() || !checkLocationThemes(placeKeywordsValue)){
-				if (requiredElementsSet.contains(MetadataElement.PlaceKeywords)){
-					throw new SolrValidationException("Missing FGDC or LCSH keywords.");
-				} else {
-				//warning
-					this.solrIngestResponse.addWarning("PlaceKeyword", "PlaceKeyword", "Missing Keywords", "No FGDC or LCSH keywords found");
+		
+		public String processPlaceKeywords() {
+			List<PlaceKeywords> placeKeywords = metadata.getPlaceKeywords();
+			logger.info("place keywords");
+			for (PlaceKeywords placeKeyword: placeKeywords){
+				logger.info("Keyword Authority: " + placeKeyword.getKeywordAuthority().getAuthorityId());
+				for (String keywordString : placeKeyword.getKeywords()){
+					logger.info("Keyword: " + keywordString);
 				}
 			}
-			return placeKeywordsValue;
+
+			if (requiredElementsSet.contains(MetadataElement.PlaceKeywords)){
+				if (verifyPlaceAuthorities(placeKeywords)){
+					if (placeKeywords.isEmpty()){
+						this.solrIngestResponse.addError("PlaceKeyword", "PlaceKeyword", "Missing Keywords", "No Place Keywords found");
+					}
+
+				} else {
+					
+				}
+			}
+			return getPlaceKeywordsAsString(placeKeywords);
+			
+		}
+			
+		
+		private Boolean verifyPlaceAuthorities(List<PlaceKeywords> placeKeywords) {
+			Boolean verified = false;
+			for (PlaceKeywords placeKeyword: placeKeywords){
+				PlaceKeywordAuthority currentAuthority = placeKeyword.getKeywordAuthority();
+				if (currentAuthority.equals(PlaceKeywordAuthority.GNISKeywords)|| 
+						currentAuthority.equals(PlaceKeywordAuthority.GNSKeywords)||
+						currentAuthority.equals(PlaceKeywordAuthority.LCNHKeywords)){
+					verified = true;
+					break;
+				}
+			}
+			
+			if (!verified){
+				if (requiredElementsSet.contains(MetadataElement.PlaceKeywords)){
+					this.solrIngestResponse.addError("PlaceKeyword", "PlaceKeyword", "MissingKeywords", "Missing required Place Keyword thesaurus (1 of 'GNIS', 'GNS', or 'LCNH')");
+				} else {
+					this.solrIngestResponse.addWarning("PlaceKeyword", "PlaceKeyword", "MissingKeywords", "Missing required Place Keyword thesaurus (1 of 'GNIS', 'GNS', or 'LCNH')");
+				}
+			}
+					
+			return verified;
 		}
 
-		private String processThemeKeywords() throws SolrValidationException {
-			String themeKeywordsValue = "";
-			String[] themeKeywords = metadata.getThemeKeywords();
-			if (themeKeywords == null){
-				themeKeywords = new String[0];
-			}
-			if (themeKeywords.length > 0){
-				themeKeywordsValue = combine(themeKeywords, " ");
-			}
-			if (themeKeywordsValue.isEmpty() || !checkIsoThemes(themeKeywordsValue)){
-				if (requiredElementsSet.contains(MetadataElement.ThemeKeywords)){
-					throw new SolrValidationException("Missing ISO keywords");
-				} else {
-				//warning
-					this.solrIngestResponse.addWarning("ThemeKeyword", "ThemeKeyword", "Missing Keywords", "No ISO keywords found");
+		private Boolean verifyThemeAuthorities(List<ThemeKeywords> themeKeywords){
+			Boolean fgdc = false;
+			Boolean iso = false;
+			Boolean lcsh = false;
+			Set<String> missingAuthorities = new HashSet<String>();
+
+			for (ThemeKeywords themeKeyword: themeKeywords){
+				ThemeKeywordAuthority currentAuthority = themeKeyword.getKeywordAuthority();
+				if (currentAuthority.equals(ThemeKeywordAuthority.FGDCKeywords)){
+					if (!themeKeyword.getKeywords().isEmpty()){
+						fgdc = true;
+					} 
+				} else if (currentAuthority.equals(ThemeKeywordAuthority.ISOKeywords)){
+					if (checkIsoThemes(themeKeyword.getKeywords())){
+						iso = true;
+					} 
+				} else if (currentAuthority.equals(ThemeKeywordAuthority.LCSHKeywords)){
+					if (!themeKeyword.getKeywords().isEmpty()){
+						lcsh = true;
+					} 
 				}
 			}
-			return themeKeywordsValue;
+			if (!fgdc){
+				missingAuthorities.add(ThemeKeywordAuthority.FGDCKeywords.getAuthorityId());
+			}
+			if (!iso){
+				missingAuthorities.add(ThemeKeywordAuthority.ISOKeywords.getAuthorityId());
+			}
+			if (!lcsh){
+				missingAuthorities.add(ThemeKeywordAuthority.LCSHKeywords.getAuthorityId());
+			}
+			Boolean verified = fgdc && iso && lcsh;
+			if (!verified){
+				String missingAuthoritiesText = combine(missingAuthorities.toArray(new String[missingAuthorities.size()]), ", ");
+				if (requiredElementsSet.contains(MetadataElement.ThemeKeywords)){
+					this.solrIngestResponse.addError("ThemeKeyword", "ThemeKeyword", "MissingKeywords", "Missing required Theme Keyword thesaurus (" + missingAuthoritiesText + ")");
+				} else {
+					this.solrIngestResponse.addWarning("ThemeKeyword", "ThemeKeyword", "MissingKeywords", "Missing required Theme Keyword thesaurus (" + missingAuthoritiesText + ")");
+				}
+			}
+					
+			return verified;
 		}
+		
+			public String processThemeKeywords() {
+				List<ThemeKeywords> themeKeywords = metadata.getThemeKeywords();
+				logger.info("theme keywords");
+				for (ThemeKeywords themeKeyword: themeKeywords){
+					logger.info(themeKeyword.getKeywordAuthority().toString());
+					logger.info("Keyword Authority: " + themeKeyword.getKeywordAuthority().getAuthorityId());
+					for (String keywordString : themeKeyword.getKeywords()){
+						logger.info("Keyword: " + keywordString);
+					}
+				}
+				if (requiredElementsSet.contains(MetadataElement.ThemeKeywords)){
+					if (verifyThemeAuthorities(themeKeywords)){
+						if (themeKeywords.isEmpty()){
+							this.solrIngestResponse.addError("ThemeKeyword", "ThemeKeyword", "Missing Keywords", "No Theme Keywords found");
+						}
+					} 
+				} else {
+					if (themeKeywords.isEmpty()){
+						this.solrIngestResponse.addWarning("ThemeKeyword", "ThemeKeyword", "Missing Keywords", "No Theme Keywords found");
+					}
+				}
+				
+				return getThemeKeywordsAsString(themeKeywords);
+			}
+			
+			public String getThemeKeywordsAsString(List<ThemeKeywords> themeKeywords){
+				Set<String> allKeywords = new HashSet<String>();
+				for (ThemeKeywords themeKeyword: themeKeywords){
+					allKeywords.addAll(themeKeyword.getKeywords());
+				}
+				return combine(allKeywords.toArray(new String[allKeywords.size()]), " ");
+			}
+			
+			public String getPlaceKeywordsAsString(List<PlaceKeywords> placeKeywords){
+				Set<String> allKeywords = new HashSet<String>();
+				for (PlaceKeywords placeKeyword: placeKeywords){
+					allKeywords.addAll(placeKeyword.getKeywords());
+				}
+				return combine(allKeywords.toArray(new String[allKeywords.size()]), " ");
+			}
 
 		private String processArea() {
 			BoundingBox bounds = metadata.getBounds();
@@ -357,7 +516,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			String description = this.metadata.getDescription();
 			String message = "Empty abstract value";
 			String field = "description";
-			String nativeName = "LayerName";
+			String nativeName = "Abstract";
 			if (requiredElementsSet.contains(MetadataElement.Abstract)){
 				if ((description == null)||(description.isEmpty())){
 					this.solrIngestResponse.addError(field, nativeName, message, "");
@@ -431,13 +590,13 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			return publisher;
 		}
 
-		private String processLayerId(String institution) throws Exception {
+		private String processLayerId(String institution) {
 			if ((institution == null)||(institution.isEmpty())){
-				throw new Exception("Institution must be specified.");
+				this.solrIngestResponse.addError("institution", "institution", "Institution must be specified", "Institution must be specified");
 			}
-			String name = this.metadata.getOwsName();
+			String name = this.metadata.getId();
 			if ((name == null)||(name.isEmpty())){
-				throw new Exception("Layer Name must be specified.");
+				this.solrIngestResponse.addError("Layer Name", "Name", "Layer Name must be specified.", "Layer Name must be specified.");
 			}
 			
 			String layerId = institution + "." + name;
@@ -446,6 +605,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 
 		private String processAccess() {
 			AccessLevel access = this.metadata.getAccess();
+			//defaults to public
 			String accessVal = "Public";
 			if (requiredElementsSet.contains(MetadataElement.Access)){
 				if (access == null){
@@ -454,7 +614,9 @@ public abstract class AbstractSolrIngest implements SolrIngest
 					accessVal = access.toString();
 				}
 			} else {
-				accessVal = access.toString();
+				if (access != null){
+					accessVal = access.toString();
+				}
 			}
 			return accessVal;
 		}
@@ -514,7 +676,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			//String projectionCode = getValue(layerInfo, Key.SrsProjectionCode);
 			//String workspace = metadata.getWorkspaceName();
 			try {
-			returnString += "ESRI Layer Name = " + metadata.getOwsName() + "<br/>\n";
+			returnString += "Layer Name = " + metadata.getOwsName() + "<br/>\n";
 			} catch (NullPointerException e){
 			}
 			try {
@@ -541,11 +703,11 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			} catch (NullPointerException e){
 			}
 			try{
-			returnString += "Theme Keywords = " + combine(metadata.getThemeKeywords(), " ") + "<br/>\n";
+			returnString += "Theme Keywords = " + getThemeKeywordsAsString(metadata.getThemeKeywords()) + "<br/>\n";
 			} catch (NullPointerException e){
 			}
 			try{
-			returnString += "Place Keywords = " + combine(metadata.getPlaceKeywords(), " ") + "<br/>\n";
+			returnString += "Place Keywords = " + getPlaceKeywordsAsString(metadata.getPlaceKeywords()) + "<br/>\n";
 			} catch (NullPointerException e){
 			}
 			try{
@@ -563,7 +725,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			return null;
 		}
 		
-		protected Boolean checkIsoThemes(String documentThemes)
+		protected Boolean checkIsoThemes(Set<String> documentThemes)
 		{
 			String[] isoThemeKeywords = {"farming", "biota", "boundaries", "climatologyMeteorologyAtmosphere", "economy",
 					"elevation", "environment", "geoscientificInformation", "health", "imageryBaseMapsEarthCover", 

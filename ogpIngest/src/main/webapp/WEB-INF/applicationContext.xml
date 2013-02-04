@@ -11,6 +11,9 @@
 		<property name="location" value="WEB-INF/ingest.properties" />
 	</bean>
 
+	<bean id="userDetailsMapper.custom" class="org.OpenGeoPortal.Security.SimpleLdapUserDetailsMapper" >
+		<property name="admins" value="${admins}" />
+	</bean>
 <!-- The Logger Injector -->
  
 <bean id="loggerInjector" class="org.OpenGeoPortal.Utilities.LoggerPostProcessor" />
@@ -40,6 +43,11 @@
 </bean>
 
 <bean id="preprocessorJobSubmitter" class="org.OpenGeoPortal.Ingest.MitMetadataPreprocessorSubmitter" >
+    	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+    	<property name="asyncTaskExecutor" ref="taskExecutor"/>
+</bean>
+
+<bean id="directToSolrJobSubmitter" class="org.OpenGeoPortal.Ingest.DirectToSolrSubmitterImpl" >
     	<property name="ingestStatusManager" ref="ingestStatusManager"/>
     	<property name="asyncTaskExecutor" ref="taskExecutor"/>
 </bean>
@@ -99,5 +107,9 @@
   	<property name="metadataConverter" ref="metadataConverter.flexible"/>
   	<property name="solrIngest" ref="solrIngest.ows"/>
   	 <property name="ingestProperties" ref="ingestProperties.propFile"/>
+  </bean>
+      <bean id="directToSolrJob" class="org.OpenGeoPortal.Ingest.DirectToSolrJobImpl" scope="prototype">
+  	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+  	<property name="solrIngest" ref="solrIngest.ows"/>
   </bean>
 </beans>

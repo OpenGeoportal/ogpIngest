@@ -39,7 +39,6 @@ public class BasicUploadMetadataJob implements UploadMetadataJob, Runnable {
 			this.fgdcFile = fgdcFile;
 			this.jobId = jobId;
 			this.requiredFields = requiredFields;
-			logger.info("creating UploadMetadataJob object");
 	}
 		
 	public void setIngestStatusManager(IngestStatusManager ingestStatusManager) {
@@ -186,7 +185,6 @@ public class BasicUploadMetadataJob implements UploadMetadataJob, Runnable {
 			}
 			logger.error("Parse Warnings:" + metadataParseResponse.ingestWarnings.size());
 		}
-
 		logger.info("Metadata parsed?: " + metadataParseResponse.metadataParsed);
 		Boolean doMapServerIngest = false;
 		Boolean doSolrIngest = true;
@@ -246,6 +244,7 @@ public class BasicUploadMetadataJob implements UploadMetadataJob, Runnable {
 				}
 				logger.warn("Solr Ingest Warnings:" + solrIngestResponse.ingestWarnings.size());
 			}
+			
 			return solrIngestResponse.solrRecord.getLayerId();
 		} else return "";
 	}

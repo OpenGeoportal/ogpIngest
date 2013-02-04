@@ -17,16 +17,8 @@ Use this page to ingest from another Solr instance directly into the local Solr 
 			<div class="header">
 		  		<h2>Enter the URL of a remote Solr instance and the institution records to copy.</h2>
 			</div>
-				<label for="institution">
-					Institution (Note: this is not the location of the remote Solr instance, rather a way to define which records you copy)
-				</label>
-				<select id="institution" name="institution">
-					<option value="MIT">MIT</option>
-					<option value="Harvard">Harvard</option>
-					<option value="Tufts">Tufts</option>
-					<option value="MassGIS">MassGIS</option>
-					<option value="Berkeley">Berkeley</option>
-				</select>
+				<%@include file="jspf/institutions.jspf"%>
+
 			<label for="solrUrl">Remote Solr Url:</label>
 			<input type="text" id="solrUrl" name="solrUrl" />
 			                <button type="submit" id="uploadButton" class="btn btn-primary">

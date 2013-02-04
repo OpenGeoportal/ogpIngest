@@ -1,9 +1,9 @@
 package org.OpenGeoPortal.Solr;
 
-import org.apache.solr.client.solrj.SolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
 
 public interface SolrClient {
-	public SolrServer getSolrServer();
+	public HttpSolrServer getSolrServer();
 	public Boolean commit();
 	public String delete(String[] layerIds) throws Exception;
 	public Boolean verifyIngest(String layerId) throws Exception;

@@ -14,13 +14,17 @@
     line-height: 40px;
 }
 
-#mainLogo{
-	margin-left:-20px;
+.headerText {
+	color: #333333;
+	font-size: 24px;
+	font-family: arial;
+	vertical-align: middle;
 }
-
 .navbar-inner {
-	background-color: #B4E0F5;
+	/*background-color: #B4E0F5;*/
+	background-color: #DDDDDD;
 	background-image: none;
+	padding: 5px;
 }
 
 .navbar img {
