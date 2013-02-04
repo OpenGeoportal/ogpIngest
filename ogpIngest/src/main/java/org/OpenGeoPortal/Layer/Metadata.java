@@ -1,5 +1,7 @@
 package org.OpenGeoPortal.Layer;
 
+import java.util.List;
+
 
 public class Metadata {
 	BoundingBox bounds;
@@ -10,8 +12,8 @@ public class Metadata {
 	String workspaceName;
 	String location;
 	String originator;
-	String[] themeKeywords;
-	String[] placeKeywords;
+	List<ThemeKeywords> themeKeywords;
+	List<PlaceKeywords> placeKeywords;
 	String institution;
 	String fullText;
 	AccessLevel access;
@@ -102,16 +104,16 @@ public class Metadata {
 	public void setOriginator(String originator) {
 		this.originator = originator;
 	}
-	public String[] getThemeKeywords() {
+	public List<ThemeKeywords> getThemeKeywords() {
 		return themeKeywords;
 	}
-	public void setThemeKeywords(String[] themeKeywords) {
+	public void setThemeKeywords(List<ThemeKeywords> themeKeywords) {
 		this.themeKeywords = themeKeywords;
 	}
-	public String[] getPlaceKeywords() {
+	public List<PlaceKeywords> getPlaceKeywords() {
 		return placeKeywords;
 	}
-	public void setPlaceKeywords(String[] placeKeywords) {
+	public void setPlaceKeywords(List<PlaceKeywords> placeKeywords) {
 		this.placeKeywords = placeKeywords;
 	}
 	public String getInstitution() {

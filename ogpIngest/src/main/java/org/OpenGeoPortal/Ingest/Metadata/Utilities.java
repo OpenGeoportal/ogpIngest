@@ -237,10 +237,11 @@ public static Document setAccessInfo(Document metadataDocument, String access, S
 
 public static Document handleFtname(Document metadataDocument, String filename){
 	//check to see if ftname exists
+		String namePrefix = "SDE_DATA.";
 		Node ftNameNode = metadataDocument.getElementsByTagName("ftname").item(0);
 		String ftName = ftNameNode.getTextContent().trim();
-		if (ftName.toUpperCase().startsWith("SDE_DATA.")){
-			ftName = ftName.substring(9);
+		if (ftName.toUpperCase().startsWith(namePrefix)){
+			ftName = ftName.substring(namePrefix.length());
 		}
 		ftNameNode.setTextContent(ftName.toUpperCase());
 		return metadataDocument;

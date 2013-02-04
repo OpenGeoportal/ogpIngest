@@ -11,6 +11,9 @@
 		<property name="location" value="WEB-INF/ingest.properties" />
 	</bean>
 
+	<bean id="userDetailsMapper.custom" class="org.OpenGeoPortal.Security.SimpleLdapUserDetailsMapper" >
+		<property name="admins" value="${admins}" />
+	</bean>
 <!-- The Logger Injector -->
  
 <bean id="loggerInjector" class="org.OpenGeoPortal.Utilities.LoggerPostProcessor" />
@@ -44,6 +47,11 @@
     	<property name="asyncTaskExecutor" ref="taskExecutor"/>
 </bean>
 
+<bean id="directToSolrJobSubmitter" class="org.OpenGeoPortal.Ingest.DirectToSolrSubmitterImpl" >
+    	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+    	<property name="asyncTaskExecutor" ref="taskExecutor"/>
+</bean>
+
  <bean id="solrIngest.ows" class="org.OpenGeoPortal.Ingest.OwsSolrIngest">
     	<property name="solrClient" ref="solrClient.solrJ"/>
     	<property name="ingestProperties" ref="ingestProperties.propFile"/>
@@ -67,7 +75,7 @@
   </bean>
     <bean id="parseMethod.FGDC" class="org.OpenGeoPortal.Ingest.Metadata.FgdcParseMethod">
   </bean>
-    <bean id="parseMethod.ISO_19139" class="org.OpenGeoPortal.Ingest.Metadata.IsoParseMethod">
+    <bean id="parseMethod.ISO_19139" class="org.OpenGeoPortal.Ingest.Metadata.Iso19139ParseMethod">
   </bean>
    <bean id="extraTasks" class="org.OpenGeoPortal.Ingest.DatabaseTasks">
   </bean>
@@ -99,5 +107,9 @@
   	<property name="metadataConverter" ref="metadataConverter.flexible"/>
   	<property name="solrIngest" ref="solrIngest.ows"/>
   	 <property name="ingestProperties" ref="ingestProperties.propFile"/>
+  </bean>
+      <bean id="directToSolrJob" class="org.OpenGeoPortal.Ingest.DirectToSolrJobImpl" scope="prototype">
+  	<property name="ingestStatusManager" ref="ingestStatusManager"/>
+  	<property name="solrIngest" ref="solrIngest.ows"/>
   </bean>
 </beans>

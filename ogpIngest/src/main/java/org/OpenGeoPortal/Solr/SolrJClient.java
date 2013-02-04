@@ -1,13 +1,11 @@
 package org.OpenGeoPortal.Solr;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
 
 import org.OpenGeoPortal.Utilities.OgpLogger;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.SolrServer;
 import org.apache.solr.client.solrj.SolrServerException;
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
@@ -16,23 +14,18 @@ import org.slf4j.Logger;
 public class SolrJClient implements SolrClient{
 	
 	//private String solrUrl;
-	private SolrServer solrServer;
+	private HttpSolrServer solrServer;
 	@OgpLogger
 	public Logger logger;
 	String solrUrl;
 	
 	public SolrJClient(String solrUrl) {
-		try {
-			this.solrUrl = solrUrl;
-			SolrServer solr = new CommonsHttpSolrServer(solrUrl);
-			this.solrServer = solr;
-		} catch (MalformedURLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		this.solrUrl = solrUrl;
+		HttpSolrServer solr = new HttpSolrServer(solrUrl);
+		this.solrServer = solr;
 	}
 	
-	public SolrServer getSolrServer(){
+	public HttpSolrServer getSolrServer(){
 		return solrServer;
 	}
 	public Boolean commit() {

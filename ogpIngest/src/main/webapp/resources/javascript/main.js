@@ -90,6 +90,3 @@ getExcelLink = function(jobId){
 	return '<a href="ingestStatus/excel?jobId=' + jobId + '">Ingest Report</a>';
 };
 
-$(function () {
-
-});

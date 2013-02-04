@@ -11,7 +11,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
 import org.OpenGeoPortal.Ingest.Metadata.FgdcParseMethod;
-import org.OpenGeoPortal.Ingest.Metadata.IsoParseMethod;
+import org.OpenGeoPortal.Ingest.Metadata.Iso19139ParseMethod;
 import org.apache.commons.fileupload.FileItem;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;

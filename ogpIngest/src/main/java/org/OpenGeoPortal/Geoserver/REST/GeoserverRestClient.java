@@ -274,5 +274,9 @@ public class GeoserverRestClient implements MapserverRestClient {
 	    			null, String.class, vars);
 	    	return result;
 	    }
+	    
+	    public void seedLayer(String layerName){
+	    	// curl -XPOST -u ${username}:${password} -H "Content-type: application/json" -d "{'seedRequest':{'name':'${layernameWithWorkspace}','srs':{'number':${epsgCode},'bounds':{'coords':{'double':['${bounds1}','${bounds2}','${bounds3}','${bounds4}']}},'zoomStart':1,'zoomStop':12,'format':'image\/png','type':'seed','threadCount':4}}}" http://${geoserverhostandpath}/gwc/rest/seed/${layernameWithWorkspace}.json
+	    }
 
 }

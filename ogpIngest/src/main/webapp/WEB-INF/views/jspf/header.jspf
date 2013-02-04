@@ -7,7 +7,7 @@
 <!-- Force latest IE rendering engine or ChromeFrame if installed -->
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
 <!-- Bootstrap CSS Toolkit styles -->
-<link rel="stylesheet" href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/css/bootstrap-combined.min.css"/>
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/css/bootstrap-combined.min.css"/>
 <!-- Generic page styles -->
 <link rel="stylesheet" href="<c:url value="/resources/css/style.css" />">
 <!-- Bootstrap styles for responsive website layout, supporting different screen sizes -->
@@ -21,18 +21,18 @@
 <link href="<c:url value="/resources/form.css" />" rel="stylesheet"
 	type="text/css" />
 <script type="text/javascript"
-	src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
 	<script type="text/javascript"
-	src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
+	src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
 	
 <script type="text/javascript"
 	src="<c:url value="/resources/javascript/jqueryform/2.8/jquery.form.js" />"></script>
 <!-- Shim to make HTML5 elements usable in older Internet Explorer versions -->
 <!--[if lt IE 9]><script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
 <!-- The Templates plugin is included to render the upload/download listings -->
-<script src="http://blueimp.github.com/JavaScript-Templates/tmpl.min.js"></script>
+<script src="<c:url value="/resources/javascript/tmpl.min.js" />"></script>
 <!-- Bootstrap JS and Bootstrap Image Gallery are not required, but included for the demo -->
-<script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/js/bootstrap.min.js"></script>
+<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/js/bootstrap.min.js"></script>
 <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
 <script src="<c:url value="/resources/javascript/jquery.iframe-transport.js" />"></script>
 <!-- The basic File Upload plugin -->

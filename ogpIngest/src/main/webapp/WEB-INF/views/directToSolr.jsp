@@ -1,24 +1,120 @@
 <%@include file="jspf/header.jspf"%>
-<title>OGP Ingest | Metadata Upload</title>
+<%@ taglib uri="http://www.springframework.org/tags/form" prefix="form" %>
+<title>OGP Ingest | Direct To Solr</title>
 </head>
 <body>
 
 <%@include file="jspf/navbar.jspf"%>
 
 	<div id="fileuploadContent">
-<h3>Metadata Ingest</h3>
+<h3>Direct To Solr</h3>
 <p>
-Use this page to ingest FGDC metadata files into GeoServer (Local layers only) and Solr.
+Use this page to upload a record directly to Solr from the form.
 </p>
 
-		<form id="fileupload" action="metadataUpload" method="POST" enctype="multipart/form-data" class="cleanform">
+		<form:form id="solrform" action="directToSolr" modelAttribute="metadata" method="POST" class="cleanform">
 			<div class="header">
+			<!-- 
+	BoundingBox bounds;
+	List<ThemeKeywords> themeKeywords;
+	List<PlaceKeywords> placeKeywords;
+	String fullText;
+	private String contentDate;
+			 -->
 		  		<h4></h4>
 			</div>
+		 		<form:label path="title">
+		  			Title: <form:errors path="title" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="title" />
+		  		
+		  		<form:label path="description">
+		  			Abstract: <form:errors path="description" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="description" />
+		  		
+		  		<form:label path="owsName">
+		  			Layer Name: <form:errors path="owsName" cssClass="error" />
+		 		</form:label>
+		 	 	<form:input path="owsName" />
+		 	 	
+		  		<form:label path="workspaceName">
+		  			Workspace Name: <form:errors path="workspaceName" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="workspaceName" />
 
-				<%@include file="jspf/institutions.jspf"%>
+		  		<form:label path="originator">
+		  			Originator: <form:errors path="originator" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="originator" />
+		  		
+		  		<form:label path="publisher">
+		  			Publisher: <form:errors path="publisher" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="publisher" />
+		  		
+		  		<form:label path="location">
+		  			Location: <form:errors path="location" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="location" />
+		  		
+		  		<form:label path="themeKeywords[0]">
+		  			Theme Keywords: <form:errors path="themeKeywords[0]" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="themeKeywords[0]" />
+		  		
+		  		<form:label path="placeKeywords[0]">
+		  			Place Keywords: <form:errors path="placeKeywords[0]" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="placeKeywords[0]" />
+		  		
+		  		<form:label path="bounds">
+		  			Bounds: <form:errors path="bounds" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="bounds" />
+		  		
+		  		<form:label path="contentDate">
+		  			Content Date: <form:errors path="contentDate" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="contentDate" />
+		  		
+		  		<form:label path="fullText">
+		  			Full Text: <form:errors path="fullText" cssClass="error" />
+		 		</form:label>
+		  		<form:input path="fullText" />
+		  		
+				<form:label path="institution">
+					Institution (select one)
+				</form:label>
+				<form:select path="institution">
+					<form:option value="Tufts">Tufts</form:option>
+					<form:option value="Harvard">Harvard</form:option>
+					<form:option value="MIT">MIT</form:option>
+					<form:option value="MassGIS">MassGIS</form:option>
+					<form:option value="Berkeley">Berkeley</form:option>
+				</form:select>
+				<form:label path="access">
+					Access Level (select one)
+				</form:label>
+				<form:select path="access">
+					<form:option value="public">public</form:option>
+					<form:option value="restricted">restricted</form:option>
+				</form:select>
 				
-			<div class="control-group">
+				<form:label path="geometryType">
+					Geometry Type
+				</form:label>
+				<form:select path="geometryType">
+					<form:option value="point">point</form:option>
+					<form:option value="line">line</form:option>
+					<form:option value="polygon">polygon</form:option>
+					<form:option value="raster">raster</form:option>
+					<form:option value="papermap">papermap</form:option>
+				</form:select>
+				
+				<label><form:checkbox path="georeferenced" value="true" />Georeferenced</label>
+		  		
+			<!-- <div class="control-group">
 				<label class="radio inline"><input type="radio" name="ingestOption" value="both" CHECKED />Ingest to GeoServer and Solr</label>
 				<label class="radio inline"><input type="radio" name="ingestOption" value="geoServerOnly" />Ingest to GeoServer only</label>
 				<label class="radio inline"><input type="radio" name="ingestOption" value="solrOnly" />Ingest to Solr only</label>
@@ -83,79 +179,23 @@ Use this page to ingest FGDC metadata files into GeoServer (Local layers only) a
 			<br/>
 			<br/>
 			<br/>
-			<label for="file"><h4>Select XML metadata file(s) or zipped directory of XML metadata files</h4></label>
-			 <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
-        <div class="row fileupload-buttonbar">
-            <div class="span4">
-                <!-- The fileinput-button span is used to style the file input field as button -->
-                <span class="btn btn-success fileinput-button">
-                    <i class="icon-plus icon-white"></i>
-                    <span>Add files...</span>
-                    <input type="file" id="file" name="fgdcFile[]" multiple>
-                </span>
-                <button type="submit" id="submitButton" class="btn btn-primary start">
-                    <i class="icon-upload icon-white"></i>
-                    <span>Start ingest</span>
-                </button>
-            </div>
-            <!-- The global progress information -->
-            <div class="span4 fileupload-progress fade">
-                <!-- The global progress bar -->
-                <div class="progress progress-success progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100">
-                    <div class="bar" style="width:0%;"></div>
-                </div>
-                <!-- The extended global progress information -->
-                <!-- <div class="progress-extended">&nbsp;</div>-->
-            </div>
-        </div>
+			-->
         <!-- The loading indicator is shown during file processing -->
         <div class="fileupload-loading"></div>
         <br>
         <!-- The table listing the files available for upload/download -->
         <table role="presentation" class="table table-striped"><tbody class="files" data-toggle="modal-gallery" data-target="#modal-gallery"></tbody></table>
 			<div id="status"></div>
-		</form>
+						<p><button type="submit">Submit</button></p>
+		</form:form>
 		
 		
 		<script type="text/javascript">
 		//var jobId;
 		var loaderUrl = '<c:url value="/resources/media/loader.gif"/>';
 			$(document).ready(function() {
-				$("#xmluploadNav").addClass("active");
 				$('<input type="hidden" name="ajaxUpload" value="true" />').insertAfter($("#file"));
-			    'use strict';
-
-			    // Initialize the jQuery File Upload widget:
-			    $('#fileupload').fileupload();
-
-			    // Enable iframe cross-domain access via redirect option:
-			    $('#fileupload').fileupload(
-			        'option',
-			        'redirect',
-			        window.location.href.replace(
-			            /\/[^\/]*$/,
-			            '/cors/result.html?%s'
-			        )
-			    );
-		        $('#fileupload').fileupload('option', {
-		            singleFileUploads: false,
-		            limitMultiFileUploads: 50,
-		            url: 'metadataUpload',
-		            acceptFileTypes: /(\.|\/)(xml|zip)$/i,
-		            dataFilter: function(data, type){
-		            	//extract jobId info and return the object fileupload plugin accepts
-		            	data = jQuery.parseJSON(data);
-		            	jQuery("#status").empty();
-						//now, return should be jobid
-						//use the jobid to make a second request to the IngestStatusManager
-						//poll every ? seconds until "succeeded" or "failed"
-							//we can get status messages and percent progress from IngestStatusManager
-		            		pollIngestStatus(data.jobId);
-						
-		            	return JSON.stringify(data.fileInfo);
-		            }
-		        });
-			});			
+			});		
 	</script>
 	</div>
 	</div>
