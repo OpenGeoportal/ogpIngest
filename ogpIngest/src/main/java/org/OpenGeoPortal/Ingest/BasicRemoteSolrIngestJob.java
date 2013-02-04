@@ -7,7 +7,8 @@ import java.util.UUID;
 import org.OpenGeoPortal.Solr.SolrClient;
 import org.OpenGeoPortal.Solr.SolrExchangeRecord;
 import org.apache.solr.client.solrj.SolrQuery;
-import org.apache.solr.client.solrj.impl.CommonsHttpSolrServer;
+import org.apache.solr.client.solrj.impl.HttpSolrServer;
+import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.QueryResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +23,14 @@ public class BasicRemoteSolrIngestJob implements RemoteSolrIngestJob, Runnable {
 	
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
-	int fetchSize = 100;
+	int fetchSize = 50;
 
 	private void getSolrRecords() throws MalformedURLException{
 		ingestStatus = ingestStatusManager.getIngestStatus(jobId);
 		//the client for the external solr
-		CommonsHttpSolrServer solrCore = new CommonsHttpSolrServer(solrUrl);
-	
+		HttpSolrServer solrCore = new HttpSolrServer(solrUrl);
+		solrCore.setParser(new XMLResponseParser());
+
 		try{
 		int recordCount = 0;
 		int totalCount = 0;
@@ -50,15 +52,24 @@ public class BasicRemoteSolrIngestJob implements RemoteSolrIngestJob, Runnable {
 				logger.info("Number found: " + Integer.toString(totalCount));
 			}
 			List<SolrExchangeRecord> beans = null;
+			//List<SolrDocument> solrdocs = null;
 			try{
 				//unmarshall the results from the query
+				//solrdocs = rsp.getResults();
 				beans = rsp.getBeans(SolrExchangeRecord.class);	 
 				if (!beans.isEmpty()){
+				//if(!solrdocs.isEmpty()){
 					try {
 						//write the records to the local solr instance
 						//Boolean solrClientExists = (solrClient != null);
 						//logger.info("solrclientexists?: " + Boolean.toString(solrClientExists));
+						//solrClient.getSolrServer().
 						solrClient.getSolrServer().addBeans(beans);
+						/*Iterator<SolrDocument> docsiterator = solrdocs.iterator();
+						HttpSolrServer solr = solrClient.getSolrServer();
+						while (docsiterator.hasNext()){
+							solr.add(ClientUtils.toSolrInputDocument(docsiterator.next()));
+						}*/
 					} catch (Exception e){
 						logger.error("Error setting beans" + e.getMessage());
 						ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error setting beans" + e.getMessage());

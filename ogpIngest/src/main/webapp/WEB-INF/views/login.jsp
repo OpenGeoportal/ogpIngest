@@ -5,7 +5,7 @@
     <div class="navbar">
     <div class="navbar-inner">
     <div class="container">
-    <img id="mainLogo" src="<c:url value="/resources/media/logo.png"/>" alt="OGP Ingest"/>
+	<%@include file="jspf/logo.jspf"%><span class="headerText">Ingest</span>
     </div>
     </div>
     </div>

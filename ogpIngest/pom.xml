@@ -4,7 +4,6 @@
   <groupId>org.OpenGeoPortal</groupId>
   <artifactId>ogpIngest</artifactId>
   <packaging>war</packaging>
-  <version>0.0.1-SNAPSHOT</version>
   <name>ogpIngest Maven Webapp</name>
   <url>http://maven.apache.org</url>
     <!-- Shared version number properties -->
@@ -212,7 +211,7 @@
     <dependency>
     	<groupId>org.apache.solr</groupId>
     	<artifactId>solr-solrj</artifactId>
-    	<version>1.4.1</version>
+    	<version>4.0.0</version>
     </dependency>
     <dependency>
     	<groupId>org.apache.commons</groupId>
@@ -298,8 +297,19 @@
         	<artifactId>cglib</artifactId>
         	<version>2.2.2</version>
         </dependency>
+        <dependency>
+        	<groupId>org.apache.httpcomponents</groupId>
+        	<artifactId>httpmime</artifactId>
+        	<version>4.2.1</version>
+        </dependency>
+        <dependency>
+        	<groupId>org.jvnet.ogc</groupId>
+        	<artifactId>iso-19139-common</artifactId>
+        	<version>1.1.0</version>
+        </dependency>
   </dependencies>
   <build>
     <finalName>ogpIngest</finalName>
   </build>
+  <version>1.0 BETA</version>
 </project>

@@ -64,12 +64,37 @@ public class FlexibleMetadataConverter implements MetadataConverter {
 			Metadata metadata  = metadataParseResponse.metadata;
 			metadata.setInstitution(institution);
 			metadata.setWorkspaceName(ingestProperties.getWorkspace(metadata, institution));
+			//store the original ows name here for the layer id, since we don't want all the prefixes
+			metadata.setId(metadata.getOwsName());
 			//should process the layer name here (ftname may or may not contain the appropriate prefix)
 			if (metadata.getOwsName() != null && !metadata.getOwsName().isEmpty()){
-				String layerNamePrefix = ingestProperties.getProperty(institution.toLowerCase() + ".layerPrefix");
-				metadata.setOwsName(layerNamePrefix + metadata.getOwsName());
+				metadata.setOwsName(processOwsName(metadata, institution));
 			}
 			return metadataParseResponse;
+	}
+	
+	private String processOwsName(Metadata metadata, String institution) throws IOException{
+		//should process the layer name here (ftname may or may not contain the appropriate prefix)
+			String layerNamePrefix = ingestProperties.getProperty(institution.toLowerCase() + ".layerPrefix");
+			String layerNameCase = ingestProperties.getProperty(institution.toLowerCase() + ".layerNameCase");
+			String owsName = metadata.getOwsName();
+			
+			if (layerNameCase.equalsIgnoreCase("uppercase")){
+				owsName = owsName.toUpperCase();
+			} else if (layerNameCase.equalsIgnoreCase("lowercase")){
+				owsName = owsName.toLowerCase();
+			} else if (layerNameCase.equalsIgnoreCase("mixed")){
+				//leave the case as is
+			} else {
+				//leave the case as is
+			}
+			if (layerNamePrefix != null){
+				if (!owsName.contains(layerNamePrefix)){
+					owsName = layerNamePrefix + owsName;
+				}
+			} 
+		
+		return owsName;
 	}
 	
 	private MetadataParseResponse handleMetadata(InputStream inputStream) throws Exception{

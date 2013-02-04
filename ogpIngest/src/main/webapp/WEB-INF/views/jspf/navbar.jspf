@@ -2,7 +2,7 @@
     <div class="navbar">
     <div class="navbar-inner">
     <div class="container">
-    <img id="mainLogo" src="<c:url value="/resources/media/logo.png"/>" alt="OGP Ingest"/>
+	<%@include file="logo.jspf"%><span class="headerText">Ingest</span>
     <div class="btn-group pull-right">
 		<a class="btn dropdown-toggle" href="#" data-toggle="dropdown">
 		<i class="icon-user"></i>
@@ -29,7 +29,7 @@ Ingest Actions
 <li id="preprocessNav"><a href="adjustMetadata">Preprocess Metadata</a><li/>
 <li id="xmluploadNav"><a href="metadataUpload">Upload Metadata</a><li/>
 <li id="externalSolrNav"><a href="ingestExternalSolr">Ingest Records from Remote Solr Instance</a><li/>
-<li id="bartonNav"><a href="ingestBarton">Ingest Map Records</a><li/>
+<!-- <li id="bartonNav"><a href="ingestBarton">Ingest Map Records</a><li/>-->
 <li id="deleteNav"><a href="solrDelete">Delete Solr Layers</a><li/>
 </ol>
 </div>

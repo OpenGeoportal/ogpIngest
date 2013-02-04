@@ -1,10 +1,15 @@
 package org.OpenGeoPortal.Ingest.Metadata;
 
-import org.OpenGeoPortal.Ingest.IngestProperties;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.OpenGeoPortal.Layer.AccessLevel;
-import org.OpenGeoPortal.Layer.BoundingBox;
 import org.OpenGeoPortal.Layer.GeometryType;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.OpenGeoPortal.Layer.PlaceKeywords;
+import org.OpenGeoPortal.Layer.ThemeKeywords;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 
 /**
@@ -26,8 +31,13 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 		EastBc("eastbc", FieldType.Single), 
 		NorthBc("northbc", FieldType.Single), 
 		SouthBc("southbc",FieldType.Single), 
-		ThemeKeywords("themekey", FieldType.Multiple), 
+		KeywordsHeader("keywords", FieldType.Single), 
+		PlaceKeywordsHeader("place", FieldType.Multiple), 
+		ThemeKeywordsHeader("theme", FieldType.Multiple), 
+		PlaceKeywordsThesaurus("placekt", FieldType.Multiple), 
+		ThemeKeywordsThesaurus("themekt", FieldType.Multiple),
 		PlaceKeywords("placekey", FieldType.Multiple), 
+		ThemeKeywords("themekey", FieldType.Multiple),
 		Access("accconst",FieldType.Single);
 
 		private final String tagName; // XML tag name
@@ -79,36 +89,147 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 		}
 	}
 	
-	Boolean validateBounds(String minX, String minY, String maxX, String maxY){
-		BoundingBox bounds = new BoundingBox(minX, minY, maxX, maxY);
-		if (bounds.isValid()){
-			return true;
-		} else {
-			return false;
-		}
-	}
 	
+	/**
+	 * marshall xml for keywords into theme and place keyword objects
+	 * @return
+	 */
 	void handleKeywords(){
-		Tag tag = FgdcTag.ThemeKeywords;
-		try{
-			String themeKeywordsString = cleanValue(getDocumentValue(tag));
-			String[] themeKeywords = themeKeywordsString.split(" ");
-			this.metadataParseResponse.metadata.setThemeKeywords(themeKeywords);
-		} catch (Exception e){
-			logger.error("handleThemeKeywords: " + e.getMessage());
-			this.metadataParseResponse.addWarning(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
+		String tagName = FgdcTag.KeywordsHeader.getTagName();
+		String tagValue = "";
+		List<ThemeKeywords> themeKeywordList = new ArrayList<ThemeKeywords>();
+		List<PlaceKeywords> placeKeywordList = new ArrayList<PlaceKeywords>();
+
+		NodeList nodes = document.getElementsByTagName(tagName);
+		if (nodes.getLength() == 0){
+			logger.info("no nodes under keyword");
+			tagValue = null;//no keywords
+		} else {
+			Node keywordHeader = nodes.item(0);
+			logger.info(keywordHeader.getNodeName());
+
+			if (keywordHeader.hasChildNodes()){
+				NodeList keywordNodeList = keywordHeader.getChildNodes();
+				for (int j = 0; j < keywordNodeList.getLength(); j++){
+					Node currentKeywordNode = keywordNodeList.item(j);
+					if (currentKeywordNode.getNodeName().equalsIgnoreCase(FgdcTag.PlaceKeywordsHeader.getTagName())){
+						logger.info("attempting to add place keyword node...");
+						//add the contents of this node to place keywords
+						PlaceKeywords placeKeywords = new PlaceKeywords();
+						NodeList currentKeywordChildren = currentKeywordNode.getChildNodes();
+						for (int i = 0; i < currentKeywordChildren.getLength(); i++){
+							Node currentKeywordChild = currentKeywordChildren.item(i);
+							if (currentKeywordChild.getNodeType() == 1){
+							logger.info("node name: " + currentKeywordChild.getNodeName());
+							if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.PlaceKeywordsThesaurus.getTagName())){
+								logger.info("thesaurus: " + currentKeywordChild.getTextContent());
+								try {
+									placeKeywords.setThesaurus(getValidValue(currentKeywordChild.getTextContent()));
+								} catch (DOMException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							} else if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.PlaceKeywords.getTagName())){
+								logger.info("keyword: " + currentKeywordChild.getTextContent());
+								try {
+									placeKeywords.addKeyword(getValidValue(currentKeywordChild.getTextContent()));
+								} catch (DOMException e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								} catch (Exception e) {
+									// TODO Auto-generated catch block
+									e.printStackTrace();
+								}
+							}
+							}
+						}
+						placeKeywordList.add(placeKeywords);
+					} else if (currentKeywordNode.getNodeName().equalsIgnoreCase(FgdcTag.ThemeKeywordsHeader.getTagName())){
+						logger.info("attempting to add theme keyword node...");
+						//add the contents of this node to theme keywords
+						ThemeKeywords themeKeywords = new ThemeKeywords();
+						NodeList currentKeywordChildren = currentKeywordNode.getChildNodes();
+						for (int i = 0; i < currentKeywordChildren.getLength(); i++){
+							Node currentKeywordChild = currentKeywordChildren.item(i);
+
+							if (currentKeywordChild.getNodeType() == 1){
+								logger.info("node value: " + currentKeywordChild.getNodeValue());
+								logger.info("node name: " + currentKeywordChild.getNodeName());
+								logger.info("node type: " + currentKeywordChild.getNodeType());
+								if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.ThemeKeywordsThesaurus.getTagName())){
+									logger.info("thesaurus: " + currentKeywordChild.getTextContent());
+									try {
+										themeKeywords.setThesaurus(getValidValue(currentKeywordChild.getTextContent()));
+									} catch (DOMException e) {
+
+									} catch (Exception e) {
+									}
+								} else if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.ThemeKeywords.getTagName())){
+									logger.info("keyword: " + currentKeywordChild.getTextContent());
+									try {
+										themeKeywords.addKeyword(getValidValue(currentKeywordChild.getTextContent()));
+									} catch (DOMException e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									} catch (Exception e) {
+										// TODO Auto-generated catch block
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+						themeKeywordList.add(themeKeywords);
+					}
+				}
+			}
 		}
-		
-		tag = FgdcTag.PlaceKeywords;
-		try{
-			String placeKeywordsString = cleanValue(getDocumentValue(tag));
-			String[] placeKeywords = placeKeywordsString.split(" ");
-			this.metadataParseResponse.metadata.setPlaceKeywords(placeKeywords);
-		} catch (Exception e){
-			logger.error("handlePlaceKeywords: " + e.getMessage());
-			this.metadataParseResponse.addWarning(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
-		}
+		this.metadataParseResponse.metadata.setThemeKeywords(themeKeywordList);
+		this.metadataParseResponse.metadata.setPlaceKeywords(placeKeywordList);
 	}
+			
+			
+			
+	/*		
+			outerloop:
+			for (int i = 0; i < nodes.getLength(); i++){
+				Node currentNode = nodes.item(i);
+				short nodeType = currentNode.getNodeType();
+				if (nodeType == Node.TEXT_NODE){
+					tagValue = currentNode.getNodeValue();
+					//logger.info("<" + tagName + ">:" + tagValue);
+					break;//found a text node, so exit
+				}
+				if (currentNode.hasChildNodes()){
+					NodeList children = currentNode.getChildNodes();
+					for (int j = 0; j < children.getLength(); j++){
+						Node currentChild = children.item(j);
+						short childNodeType = currentChild.getNodeType();
+						if (childNodeType == Node.TEXT_NODE){
+							tagValue = currentChild.getNodeValue();
+							//logger.info("<" + tagName + ">:" + tagValue);
+							break outerloop;//found a text node, so exit
+						}
+					}
+				} 
+			}
+		}
+			
+		if ((tagValue == null) || (tagValue.length() == 0)){
+			logger.error("No tag value found [" + tagName + "]");		
+		}
+	
+		try {
+			//return getValidValue(tagValue);
+		} catch (Exception e){
+			numberOfParseWarnings++;
+			missingParseTags.add(tagName);
+			//throw new Exception(e.getMessage());
+		}
+	}*/
+
 
 	/**
 	 * get the content date which could be in one of three different tags
