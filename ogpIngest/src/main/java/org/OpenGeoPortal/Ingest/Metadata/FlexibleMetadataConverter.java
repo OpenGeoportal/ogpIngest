@@ -63,7 +63,9 @@ public class FlexibleMetadataConverter implements MetadataConverter {
 			MetadataParseResponse metadataParseResponse = handleMetadata(metadataStream);
 			Metadata metadata  = metadataParseResponse.metadata;
 			metadata.setInstitution(institution);
-			metadata.setWorkspaceName(ingestProperties.getWorkspace(metadata, institution));
+			if (metadata.getWorkspaceName() == null || metadata.getWorkspaceName().isEmpty()){
+				metadata.setWorkspaceName(ingestProperties.getWorkspace(metadata, institution));
+			}
 			//store the original ows name here for the layer id, since we don't want all the prefixes
 			metadata.setId(metadata.getOwsName());
 			//should process the layer name here (ftname may or may not contain the appropriate prefix)

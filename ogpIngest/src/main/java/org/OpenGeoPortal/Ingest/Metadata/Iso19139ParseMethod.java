@@ -1,7 +1,18 @@
 package org.OpenGeoPortal.Ingest.Metadata;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.OpenGeoPortal.Ingest.Metadata.TC211CodeListValues.ISO_CI_PresentationFormCode;
+import org.OpenGeoPortal.Ingest.Metadata.TC211CodeListValues.ISO_MD_GeometricObjectTypeCode;
+import org.OpenGeoPortal.Ingest.Metadata.TC211CodeListValues.ISO_MI_GeometryTypeCode;
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.GeometryType;
+import org.OpenGeoPortal.Layer.PlaceKeywords;
+import org.OpenGeoPortal.Layer.ThemeKeywords;
+import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -12,6 +23,7 @@ import org.w3c.dom.NodeList;
  * 
  * this code isn't complete but works well enough to run searches for ISO layers
  * 
+ * @author chrissbarnett
  * @author smcdon08
  *
  */
@@ -52,37 +64,199 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 			return fieldType;
 		}
 	}
+
+	protected List<String> getDistributorFormats(){			/*
+		 //paper; no digital format
+		<gmd:distributorFormat>
+      <gmd:MD_Format>
+        <gmd:name>
+          <gco:CharacterString>No digital format</gco:CharacterString>
+        </gmd:name>
+        <gmd:version>
+          <gco:CharacterString>n.a.</gco:CharacterString>
+        </gmd:version>
+      </gmd:MD_Format>
+    </gmd:distributorFormat>*/
+		List<String> distributorFormats = new ArrayList<String>();
+		NodeList distFormatNodes = document.getElementsByTagNameNS("*", "distributorFormat");
+		for (int i = 0; i < distFormatNodes.getLength(); i++){
+			Node currentNode = distFormatNodes.item(i);
+			NodeList MD_FormatNodes = currentNode.getChildNodes();
+			for (int j=0; j< MD_FormatNodes.getLength(); j++){
+				Node currentFormatNode = MD_FormatNodes.item(j);
+				NodeList formatNodeDetails = currentFormatNode.getChildNodes();
+				for (int k = 0; k < formatNodeDetails.getLength(); k++){
+					Node currentDetailNode = formatNodeDetails.item(k);
+					if (currentDetailNode.getLocalName().equals("name")){
+						distributorFormats.add(currentDetailNode.getTextContent().trim().toLowerCase());
+						break;
+					}
+				}
+			}
+		}
+		return distributorFormats;
+	}
+	
+	protected GeometryType convertCI_PresentationCodeToGeometryType(ISO_CI_PresentationFormCode codeValue) throws Exception{
+		GeometryType geomType = GeometryType.Undefined;
+		switch (codeValue) {
+        	case imageDigital: 
+        		geomType = GeometryType.Raster;
+        		break;
+        	case mapDigital: 
+        		geomType = getMapDigitalGeometryType();
+        		break;
+        	case imageHardcopy: 
+        	case mapHardcopy:
+        		geomType = GeometryType.PaperMap;
+        		break;
+        	case documentDigital:
+        	case documentHardcopy:
+        		geomType = GeometryType.LibraryRecord;
+        	default: 
+        		//we don't know what to do with all these dataTypes right now.
+        		geomType = GeometryType.Undefined;	
+        		break;
+		}
+
+		return geomType;
+	}
 	/**
-	 * from the gist data, I've only seen vector and grid values for MD_SpatialRepresentationTypeCode
-	 * this function isn't complete 
-	 * @throws Exception 
 	 */
 	@Override
 	protected void handleDataType()
 	{
-		
-		GeometryType geomType = null;
-		String dataType = null;
-			try {
-				dataType = getAttributeValue("MD_SpatialRepresentationTypeCode", "codeListValue");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		/*
+		 <gmd:identificationInfo>
+			<gmd:MD_DataIdentification>
+  				<gmd:citation>
+    				<gmd:CI_Citation>
+    					<gmd:presentationForm>
+        					<gmd:CI_PresentationFormCode codeList="http://www.isotc211.org/2005/resources/codeList.xml#CI_PresentationFormCode" codeListValue="mapHardcopy" />
+      					</gmd:presentationForm>
+		 */
+		GeometryType geomType = null;		
+		try {
+			String rawDataType = getAttributeValue("CI_PresentationFormCode", "codeListValue");
+			ISO_CI_PresentationFormCode codeValue = ISO_CI_PresentationFormCode.parseISOPresentationFormCode(rawDataType);
+			setGeometryType(convertCI_PresentationCodeToGeometryType(codeValue));
+		} catch (Exception e){
+			List<String> distributorFormats = getDistributorFormats();
+			if (distributorFormats.contains("no digital")){
+				geomType = GeometryType.LibraryRecord;
+			} else {
+				geomType = GeometryType.Undefined;
 			}
-//        <gmd:MD_SpatialRepresentationTypeCode codeListValue="grid" codeList="http://www.isotc211.org/2005/resources/codeList.xml#MD_SpatialRepresentationTypeCode" />
-
-		if (dataType != null)
-		{
+			setGeometryType(geomType);
+		}
+	}
+		
+	protected GeometryType getMapDigitalGeometryType(){
+		String dataType = null;
+		String xmlTag = null;
+		GeometryType geomType = GeometryType.Undefined;
+		try {
+			xmlTag = "MD_SpatialRepresentationTypeCode";
+			dataType = getAttributeValue(xmlTag, "codeListValue");
+		} catch (Exception e) {
+			try{
+				xmlTag = "MD_TopologyLevelCode";
+				dataType = getAttributeValue(xmlTag, "codeListValue");
+			} catch (Exception e1){
+				logger.info("Exception getting SpatialRepresentationTypeCode and MD_TopologyLevelCode: DataType:" + geomType.toString());
+				return geomType;
+			}
+		}
+//      <gmd:MD_SpatialRepresentationTypeCode codeListValue="grid" codeList="http://www.isotc211.org/2005/resources/codeList.xml#MD_SpatialRepresentationTypeCode" />
+		/*
+		vector	vector data is used to represent geographic data	MD_SpatialRepresentationTypeCode_vector
+		grid	grid data is used to represent geographic data	MD_SpatialRepresentationTypeCode_grid
+		textTable	textual or tabular data is used to represent geographic data	MD_SpatialRepresentationTypeCode_textTable
+		tin	triangulated irregular network	MD_SpatialRepresentationTypeCode_tin
+		stereoModel	three-dimensional view formed by the intersecting homologous rays of an overlapping pair of images	MD_SpatialRepresentationTypeCode_stereoModel
+		video	scene from a video recording	MD_SpatialRepresentationTypeCode_video
+		 */
+		if (xmlTag.equals("MD_SpatialRepresentationTypeCode")){
 			if (dataType.equalsIgnoreCase("grid"))
 				geomType = GeometryType.Raster;
 			else if (dataType.equalsIgnoreCase("tin"))
 				geomType = GeometryType.Polygon;
-			else if (dataType.equalsIgnoreCase("vector"))
-				geomType = GeometryType.Line;
-			else 
+			else if (dataType.equalsIgnoreCase("vector")){
+				geomType = resolveVectorToGeometryType();
+			} else 
 				geomType = GeometryType.Undefined;
+		} else if (xmlTag.equals("MD_TopologyLevelCode")){
+			if (dataType.equalsIgnoreCase("geometryOnly")){
+				geomType = resolveVectorToGeometryType();
+			}
 		}
-		
+		 logger.info("DataType:" + geomType.toString());
+		return geomType;
+	}
+			
+	protected GeometryType resolveVectorToGeometryType(){
+		GeometryType geomType = GeometryType.Undefined;
+		try {
+			String code = this.getAttributeValue("MI_GeometryTypeCode", "codeListValue");
+			geomType = convertMI_GeometryTypeCodeToGeometryType(ISO_MI_GeometryTypeCode.parseISO_MI_GeometryTypeCode(code));
+		} catch (Exception e) {}
+		if (geomType.equals(GeometryType.Undefined)){
+			try {
+				String code = this.getAttributeValue("MD_GeometricObjectTypeCode", "codeListValue");
+				geomType = convertMD_GeometricObjectTypeCodeToGeometryType(ISO_MD_GeometricObjectTypeCode.parseISO_MD_GeometricObjectTypeCode(code));
+			} catch (Exception e) {}
+		}
+		if (geomType.equals(GeometryType.Undefined)){
+			//generic vector 
+			geomType = GeometryType.Line;
+		}
+		return geomType;
+	}
+	
+	protected GeometryType convertMD_GeometricObjectTypeCodeToGeometryType(ISO_MD_GeometricObjectTypeCode codeValue) throws Exception{
+		GeometryType geomType = GeometryType.Undefined;
+		switch (codeValue) {
+        	case complex: 
+        	case composite:
+        	case surface:
+        		geomType = GeometryType.Polygon;
+        		break;
+        	case curve: 
+        		geomType = GeometryType.Line;
+        		break;
+        	case point: 
+        		geomType = GeometryType.Point;
+        		break;
+        	default: 
+        		geomType = GeometryType.Undefined;	
+        		break;
+		}
+
+		return geomType;
+	}		
+
+	protected GeometryType convertMI_GeometryTypeCodeToGeometryType(ISO_MI_GeometryTypeCode codeValue) throws Exception{
+		GeometryType geomType = GeometryType.Undefined;
+		switch (codeValue) {
+        	case areal:
+        	case strip:
+        		geomType = GeometryType.Polygon;
+        		break;
+        	case linear: 
+        		geomType = GeometryType.Line;
+        		break;
+        	case point: 
+        		geomType = GeometryType.Point;
+        		break;
+        	default: 
+        		geomType = GeometryType.Undefined;	
+        		break;
+		}
+
+		return geomType;
+	}
+
+	protected void setGeometryType(GeometryType geomType){
 		try {
 			this.metadataParseResponse.metadata.setGeometryType(geomType);
 		} catch (Exception e) {
@@ -90,7 +264,7 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 			this.metadataParseResponse.addError("DataType", "MD_SpatialRepresentationTypeCode", e.getClass().getName(), e.getMessage());
 		}
 	}
-
+	
 	@Override
 	void handleOriginator() {
 		//prefer CI_RoleCode originator, author, principalInvestigator, owner
@@ -165,17 +339,133 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
  * 
  * 
  */
+		Map<String, Node> originatorsTable = new HashMap<String,Node>();
+		NodeList originators = document.getElementsByTagNameNS("*", "CI_RoleCode");
+		for (int i = 0; i < originators.getLength(); i++){
+			Node currentNode = originators.item(i);
+			String roleCode = currentNode.getAttributes().getNamedItem("codeListValue").getNodeValue();
+			originatorsTable.put(roleCode, currentNode);
+			logger.debug("citation role: " + roleCode);
+		}
+		Node originatorNode = null;
+		Node publisherNode = null;
+		//prefer CI_RoleCode originator, author, principalInvestigator, owner
+		List<String> originatorKeys = new ArrayList<String>();
+		//in inverse order of preference
+		originatorKeys.add("owner");
+		originatorKeys.add("principalInvestigator");
+		originatorKeys.add("author");
+		originatorKeys.add("originator");
 		
+		List<String> publisherKeys = new ArrayList<String>();
+		publisherKeys.add("processor");
+		publisherKeys.add("custodian");
+		publisherKeys.add("resourceProvider");
+		publisherKeys.add("distributor");
+		publisherKeys.add("publisher");
+
+		List<String> preferredOriginatorKey = new ArrayList<String>();
+		preferredOriginatorKey.addAll(publisherKeys);
+		preferredOriginatorKey.addAll(originatorKeys);
+
+		for (String key: preferredOriginatorKey){
+			if (originatorsTable.containsKey(key)){
+				originatorNode = originatorsTable.get(key);
+			} 
+		}
+		String originatorValue = "";
+		if (originatorNode != null){
+			try {
+				originatorValue = getCitationInfo(originatorNode);
+			} catch (DOMException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} 
+		
+		//prefer CI_RoleCode publisher, distibutor, resourceProvider, custodian, processor
+		List<String> preferredPublisherKey = new ArrayList<String>();
+		preferredPublisherKey.addAll(originatorKeys);
+		preferredPublisherKey.addAll(publisherKeys);
+
+		for (String key: preferredPublisherKey){
+			if (originatorsTable.containsKey(key)){
+				publisherNode = originatorsTable.get(key);
+			} 
+		}
+		String publisherValue = "";
+		if (publisherNode != null){
+			try {
+				publisherValue = getCitationInfo(publisherNode);
+			} catch (DOMException e) {
+				e.printStackTrace();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		} 
+		try {
+			this.metadataParseResponse.metadata.setOriginator(originatorValue.trim());
+		} catch (Exception e) {
+			logger.error("handleOriginator: " + e.getMessage());
+			this.metadataParseResponse.addError("Originator", "CI_ResponsibleParty", e.getClass().getName(), e.getMessage());
+		}
+		try {
+			this.metadataParseResponse.metadata.setPublisher(publisherValue.trim());
+		} catch (Exception e) {
+			logger.error("handlePublisher: " + e.getMessage());
+			this.metadataParseResponse.addError("Publisher", "CI_ResponsibleParty", e.getClass().getName(), e.getMessage());
+		}
 	}
 
+	String getCitationInfo(Node node) throws DOMException, Exception{
+		Node parentNode = node.getParentNode().getParentNode();
+		//    <gmd:CI_ResponsibleParty>
+		logger.debug(parentNode.getNodeName());
+		if (parentNode.getNodeName().contains("CI_ResponsibleParty")){
+		      /*<gmd:individualName>
+		        <gco:CharacterString>Francesca Perez</gco:CharacterString>
+		      </gmd:individualName>
+		      <gmd:organisationName>
+		        <gco:CharacterString>ITHACA - Information Technology for Humanitarian Assistance, Cooperation and Action</gco:CharacterString>
+		      </gmd:organisationName>
+		      <gmd:positionName gco:nilReason="missing">
+		        <gco:CharacterString />
+		      </gmd:positionName>*/
+			NodeList childNodes = parentNode.getChildNodes();
+			String individualName = "";
+			String positionName = "";
+			for (int i = 0; i < childNodes.getLength(); i++){
+				if (!positionName.isEmpty() && !individualName.isEmpty()){
+					break;
+				}
+				Node currentNode = childNodes.item(i);
+				String nodeName = currentNode.getNodeName();
+				if (nodeName.contains("organisationName")){
+					return getValidValue(currentNode.getTextContent());
+				} else if (nodeName.contains("individualName")){
+					individualName = getValidValue(currentNode.getTextContent());
+				} else if (nodeName.contains("positionName")){
+					positionName = getValidValue(currentNode.getTextContent());
+				}
+			}
+			if (!individualName.isEmpty()){
+				return individualName;
+			} else {
+				return positionName;
+			}
+		} else {
+			return "";
+		}
+	}
 	@Override
 	void handlePublisher() {
-		//prefer CI_RoleCode publisher, distibutor, resourceProvider, custodian, processor
+		//don't do anything...we handle this in handleOriginator()
 		
 	}
 
 	@Override
-	void handleLayerName() {
+	String getLayerName() {
 		/*
 		 * 
 		 *   <gmd:fileIdentifier xmlns:srv="http://www.isotc211.org/2005/srv" xmlns:gmx="http://www.isotc211.org/2005/gmx">
@@ -185,10 +475,10 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 		 */
 		Tag tag = Iso19139Tag.LayerName;
 		try {
-			this.metadataParseResponse.metadata.setOwsName(getDocumentValue(tag));
+			return getDocumentValue(tag);
 		} catch (Exception e) {
-			logger.error("handleLayerName: " + e.getMessage());
-			this.metadataParseResponse.addError(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
+			logger.error("getLayerName: " + e.getMessage());
+			return "";
 		}
 	}
 
@@ -360,16 +650,15 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
         </gmd:MD_LegalConstraints>
       </gmd:resourceConstraints>
  */
+		String accessValue$ = "";
+		try {
+			accessValue$ = getAttributeValue("MD_RestrictionCode", "codeListValue");
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 		Tag tag = Iso19139Tag.Access;
 		try {
-			String accessValue$ = "";
-			try{
-				accessValue$ = getDocumentValue(tag);
-			} catch (Exception e){
-				AccessLevel nullAccess = null;
-				this.metadataParseResponse.metadata.setAccessLevel(nullAccess);
-				return;
-			}
 			AccessLevel accessValue = AccessLevel.Public;
 			accessValue$ = accessValue$.toLowerCase();
 			if (accessValue$.startsWith("restricted")){
@@ -390,6 +679,18 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
         <gmd:MD_TopicCategoryCode>environment</gmd:MD_TopicCategoryCode>
       </gmd:topicCategory>
 		 */
+		List<ThemeKeywords> themeKeywordList = new ArrayList<ThemeKeywords>();
+		List<PlaceKeywords> placeKeywordList = new ArrayList<PlaceKeywords>();
+		//add the iso theme keyword
+		try {
+			ThemeKeywords isoThemeKeyword = new ThemeKeywords();
+			isoThemeKeyword.setThesaurus("ISO 19115");
+			isoThemeKeyword.addKeyword(this.getDocumentValue("topicCategory"));
+			themeKeywordList.add(isoThemeKeyword);
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.error("No ISO topic category found");
+		}
 /*
  *       <gmd:descriptiveKeywords>
         <gmd:MD_Keywords>
@@ -461,6 +762,68 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
       </gmd:descriptiveKeywords>
  */
 		
+		NodeList keywordNodes = document.getElementsByTagNameNS("*", "descriptiveKeywords");
+		for (int i = 0; i < keywordNodes.getLength(); i++){
+			Node currentNode = keywordNodes.item(i);
+			NodeList descriptiveKeywordsChildren = currentNode.getChildNodes();
+			Node mDKeywordsNode = null;
+			for (int k = 0; k < descriptiveKeywordsChildren.getLength(); k++){
+				Node currentDescKeywords = descriptiveKeywordsChildren.item(k);
+				if (currentDescKeywords.getNodeName().toLowerCase().contains("md_keywords")){
+					mDKeywordsNode = currentDescKeywords;
+					break;
+				}
+			}
+			NodeList keywordDetailNodes = mDKeywordsNode.getChildNodes();
+			String keywordValue = "";
+			String keywordType = "";
+			for (int j = 0; j < keywordDetailNodes.getLength(); j++){
+				Node currentDetailNode = keywordDetailNodes.item(j);
+
+				if (currentDetailNode.getNodeName().contains("keyword")){
+					keywordValue = currentDetailNode.getTextContent().trim();
+					logger.debug("keyword value: " + keywordValue);
+				} else if (currentDetailNode.getNodeName().contains("type")){
+					NodeList keywordTypeNodes = currentDetailNode.getChildNodes();
+					for (int n = 0; n < keywordTypeNodes.getLength(); n++){
+						Node currentTypeNode = keywordTypeNodes.item(n);
+						if (currentTypeNode.getNodeName().toLowerCase().contains("md_keywordtypecode")){
+							keywordType = currentTypeNode.getAttributes().getNamedItem("codeListValue").getNodeValue();
+						}
+					}		
+							
+					logger.debug("keyword type: " + keywordType);
+				}
+				//keyword CharacterString
+				//type  MD_KeywordTypeCode attr: codeListValue
+				//thesaurus Name ...skip this for now
+		         /* <gmd:thesaurusName>
+		            <gmd:CI_Citation>
+		              <gmd:title>
+		                <gco:CharacterString>GEMET - INSPIRE themes, version 1.0</gco:CharacterString>
+		              </gmd:title>
+		              <gmd:date gco:nilReason="unknown" />
+		            </gmd:CI_Citation>
+		          </gmd:thesaurusName>
+		          */
+			}
+			if (!keywordValue.isEmpty()){
+				if (keywordType.equalsIgnoreCase("place")){
+					PlaceKeywords placeKeywords = new PlaceKeywords();
+					placeKeywords.setThesaurus("unspecified");
+					placeKeywords.addKeyword(keywordValue);
+					placeKeywordList.add(placeKeywords);
+				} else {
+					ThemeKeywords themeKeywords = new ThemeKeywords();
+					themeKeywords.setThesaurus("unspecified");
+					themeKeywords.addKeyword(keywordValue);
+					themeKeywordList.add(themeKeywords);
+				}
+			}
+		}
+
+		this.metadataParseResponse.metadata.setThemeKeywords(themeKeywordList);
+		this.metadataParseResponse.metadata.setPlaceKeywords(placeKeywordList);
 	}
 
 	@Override

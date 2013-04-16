@@ -1,12 +1,17 @@
 package org.OpenGeoPortal.Ingest;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.BoundingBox;
 import org.OpenGeoPortal.Layer.GeometryType;
+import org.OpenGeoPortal.Layer.LocationLink;
+import org.OpenGeoPortal.Layer.LocationLink.LocationType;
 import org.OpenGeoPortal.Layer.Metadata;
 import org.OpenGeoPortal.Layer.PlaceKeywords;
 import org.OpenGeoPortal.Layer.PlaceKeywords.PlaceKeywordAuthority;
@@ -324,13 +329,13 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				}
 			}
 			if (!fgdc){
-				missingAuthorities.add(ThemeKeywordAuthority.FGDCKeywords.getAuthorityId());
+				missingAuthorities.add(ThemeKeywordAuthority.FGDCKeywords.getAuthorityId()[0]);
 			}
 			if (!iso){
-				missingAuthorities.add(ThemeKeywordAuthority.ISOKeywords.getAuthorityId());
+				missingAuthorities.add(ThemeKeywordAuthority.ISOKeywords.getAuthorityId()[0]);
 			}
 			if (!lcsh){
-				missingAuthorities.add(ThemeKeywordAuthority.LCSHKeywords.getAuthorityId());
+				missingAuthorities.add(ThemeKeywordAuthority.LCSHKeywords.getAuthorityId()[0]);
 			}
 			Boolean verified = fgdc && iso && lcsh;
 			if (!verified){
@@ -350,7 +355,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				logger.info("theme keywords");
 				for (ThemeKeywords themeKeyword: themeKeywords){
 					logger.info(themeKeyword.getKeywordAuthority().toString());
-					logger.info("Keyword Authority: " + themeKeyword.getKeywordAuthority().getAuthorityId());
+					logger.info("Keyword Authority: " + themeKeyword.getKeywordAuthority().getAuthorityId()[0]);
 					for (String keywordString : themeKeyword.getKeywords()){
 						logger.info("Keyword: " + keywordString);
 					}
@@ -471,6 +476,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 
 		private String processName() {
 			String name = this.metadata.getOwsName();
+			logger.info("OWS Name: " + name);
 			String message = "Empty Name value";
 			String field = "LayerName";
 			String nativeName = "Name";
@@ -485,7 +491,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 					name = "";
 				}
 			}
-			return name.toUpperCase();
+			return name;
 		}
 
 		public String processFullText(){
@@ -756,5 +762,52 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				//missingParseTags.add("LCSH/FGDC theme");
 			}
 			return locationThemesOk;
+		}
+		
+		protected String locationLinksToString(Set<LocationLink> links){
+			String locationString = "";
+			Iterator<LocationLink> locationLinkIter = links.iterator();
+			Map<LocationType, Set<LocationLink>> locationMap = new HashMap<LocationType, Set<LocationLink>>();
+			while (locationLinkIter.hasNext()){
+				//we need to gather duplicate location types here
+				LocationLink currentLocationLink = locationLinkIter.next();
+				if (locationMap.containsKey(currentLocationLink.getLocationType())){
+					locationMap.get(currentLocationLink.getLocationType()).add(currentLocationLink);
+				} else {
+					Set<LocationLink> newLinkType = new HashSet<LocationLink>();
+					newLinkType.add(currentLocationLink);
+					locationMap.put(currentLocationLink.getLocationType(), newLinkType);
+				}
+
+			}
+			for (LocationType type : locationMap.keySet()){
+				Set<LocationLink> values = locationMap.get(type);
+				if (type.isArray){
+					String urlArray = "\"" + type.toString() + "\": [";
+					for (LocationLink currentLink: values){
+						urlArray +=  "\"" + currentLink.getURL() + "\","; 
+					}
+					urlArray = urlArray.substring(0, urlArray.length() - 1);
+					urlArray +=	 "]";
+					locationString += urlArray + ",";
+				} else {
+					if (values.size() == 1){
+						locationString += values.toArray()[0].toString() + ",";
+					} else {
+						//make some decision about which value gets passed in
+						locationString += values.toArray()[0].toString() + ",";
+					}
+				}
+			}
+			/*logger.info("Link:" + currentLocationLink.toString());
+			if (!currentLocationLink.getLocationType().isArray){
+				locationString += currentLocationLink.toString() + ",";
+			} else {
+				
+			}*/
+			if (!locationString.isEmpty()){
+				locationString = "{" + locationString.substring(0, locationString.length() - 1) + "}";
+			}
+			return locationString;
 		}
 }

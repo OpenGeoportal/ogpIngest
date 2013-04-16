@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.xml.transform.OutputKeys;
@@ -17,6 +18,8 @@ import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
 import org.OpenGeoPortal.Layer.BoundingBox;
+import org.OpenGeoPortal.Layer.LocationLink;
+import org.OpenGeoPortal.Layer.LocationLink.LocationType;
 import org.OpenGeoPortal.Utilities.OgpLogger;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
@@ -38,6 +41,8 @@ public abstract class AbstractXmlMetadataParseMethod {
 	public Vector<String> missingParseTags = new Vector<String>();
 	public Document document;
 	public MetadataParseResponse metadataParseResponse;
+	public LocationResolver locationResolver;
+
 	@OgpLogger
 	public Logger logger;
 	/**
@@ -57,7 +62,7 @@ public abstract class AbstractXmlMetadataParseMethod {
 			this.metadataParseResponse = new MetadataParseResponse();
 			handleTitle();
 			handleAbstract();
-			handleLayerName();
+			handleLocation();
 			handlePublisher();
 			handleOriginator();
 			handleBounds();
@@ -70,11 +75,55 @@ public abstract class AbstractXmlMetadataParseMethod {
 			return metadataParseResponse;
 		}
 
+		public LocationResolver getLocationResolver() {
+			return locationResolver;
+		}
+
+		public void setLocationResolver(LocationResolver locationResolver) {
+			this.locationResolver = locationResolver;
+		}
+		
+	protected void handleLocation() {
+		String layerName = "";
+		String workspaceName = "";
+		layerName = this.getLayerName();
+		try{
+			Set<LocationLink> links = locationResolver.resolveLocation(document);
+			logger.info("number of links: " + Integer.toString(links.size()));
+			for (LocationLink link: links){
+				if (link.getLocationType().equals(LocationType.wms)){
+					if (!link.getResourceName().trim().isEmpty()){
+						//if we get a layer name for ows services, we should set it here, replacing <ftname> or other tags.
+						layerName = link.getResourceName().trim();
+						if (layerName.contains(":")){
+							String[] nameArray = layerName.split(":");
+							workspaceName = nameArray[0];
+							layerName = nameArray[1];
+							logger.info(layerName);
+						}
+						break;
+					}
+				}
+			}
+			this.metadataParseResponse.metadata.setLocation(links);
+		} catch (Exception e){
+			this.metadataParseResponse.addWarning("location", "location", e.getClass().getName(), e.getMessage());	
+		}
+		try{
+			this.metadataParseResponse.metadata.setOwsName(layerName);
+			if (!workspaceName.isEmpty()){
+				this.metadataParseResponse.metadata.setWorkspaceName(workspaceName);
+			}
+		} catch (Exception e){
+			this.metadataParseResponse.addWarning("layername", "layername", e.getClass().getName(), e.getMessage());
+		}
+	}
+
 	abstract void handleOriginator();
 
 	abstract void handlePublisher();
 
-	abstract void handleLayerName();
+	abstract String getLayerName();
 	
 	abstract void handleAbstract();
 
@@ -255,10 +304,8 @@ public abstract class AbstractXmlMetadataParseMethod {
 	 * @param inputStream
 	 * @param layerValues
 	 */
-	String getFullText()
-	{
-		try 
-		{
+	String getFullText(){
+		try {
 			/*
 			 * 
 			 * Node pi = xmldoc.createProcessingInstruction

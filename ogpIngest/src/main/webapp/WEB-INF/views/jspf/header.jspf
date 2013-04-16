@@ -7,7 +7,8 @@
 <!-- Force latest IE rendering engine or ChromeFrame if installed -->
 <!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"><![endif]-->
 <!-- Bootstrap CSS Toolkit styles -->
-<link rel="stylesheet" href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/css/bootstrap-combined.min.css"/>
+<!-- <link rel="stylesheet" href="//netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/css/bootstrap-combined.min.css"/>-->
+<link rel="stylesheet" href="<c:url value="/resources/css/bootstrap.min.css" />">
 <!-- Generic page styles -->
 <link rel="stylesheet" href="<c:url value="/resources/css/style.css" />">
 <!-- Bootstrap styles for responsive website layout, supporting different screen sizes -->
@@ -32,7 +33,8 @@
 <!-- The Templates plugin is included to render the upload/download listings -->
 <script src="<c:url value="/resources/javascript/tmpl.min.js" />"></script>
 <!-- Bootstrap JS and Bootstrap Image Gallery are not required, but included for the demo -->
-<script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/js/bootstrap.min.js"></script>
+<!-- <script src="//netdna.bootstrapcdn.com/twitter-bootstrap/2.0.4/js/bootstrap.min.js"></script>-->
+<script src="<c:url value="/resources/javascript/bootstrap.min.js" />"></script>
 <!-- The Iframe Transport is required for browsers without support for XHR file uploads -->
 <script src="<c:url value="/resources/javascript/jquery.iframe-transport.js" />"></script>
 <!-- The basic File Upload plugin -->

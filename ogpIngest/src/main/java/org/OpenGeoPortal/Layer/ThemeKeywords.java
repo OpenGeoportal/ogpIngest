@@ -6,19 +6,19 @@ import java.util.Set;
 public class ThemeKeywords {
 	
 	public enum ThemeKeywordAuthority {
-		ISOKeywords("ISO 19115"),
-		FGDCKeywords("FGDC"),
-		LCSHKeywords("LCSH"),
-		Unrecognized("unrecognized"),
-		Unspecified("unspecified");
+		ISOKeywords(new String[]{"ISO 19115"}),
+		FGDCKeywords(new String[] {"FGDC"}),
+		LCSHKeywords(new String[] {"LCSH", "Library of Congress Subject Headings"}),
+		Unrecognized(new String[] {"unrecognized"}),
+		Unspecified(new String[] {"unspecified"});
 		
-		private final String authorityId;
+		private final String[] authorityId;
 		
-		ThemeKeywordAuthority(String authorityId){
+		ThemeKeywordAuthority(String[] authorityId){
 			this.authorityId = authorityId;
 		}
 		
-		public String getAuthorityId(){
+		public String[] getAuthorityId(){
 			return this.authorityId;
 		}
 	}
@@ -33,9 +33,11 @@ public class ThemeKeywords {
 		}
 		thesaurus = thesaurus.trim().toUpperCase();
 		for (ThemeKeywordAuthority tkauth : ThemeKeywordAuthority.values()){
-			if (thesaurus.contains(tkauth.getAuthorityId().toUpperCase())){
-				themeKeywordAuthority = tkauth;
-				return;
+			for (String authId: tkauth.getAuthorityId()){
+				if (thesaurus.contains(authId.toUpperCase())){
+					themeKeywordAuthority = tkauth;
+					return;
+				}
 			}
 		}
 		themeKeywordAuthority = ThemeKeywordAuthority.Unrecognized;
