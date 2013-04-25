@@ -15,7 +15,8 @@ public class XmlMetadataParseMethodProvider implements MetadataParseMethodProvid
 		try {
 			//<metstdn>FGDC Content Standards for Digital Geospatial Metadata
 			//<metstdv>FGDC-STD-001-1998
-			if (document.getElementsByTagName("metstdn").item(0).getTextContent().toLowerCase().contains("fgdc")){
+			if (document.getElementsByTagName("metstdn").item(0).getTextContent().toLowerCase().contains("fgdc")||
+					document.getElementsByTagName("metstdv").item(0).getTextContent().toLowerCase().contains("fgdc")){
 				metadataType = MetadataType.FGDC;
 			}
 		} catch (Exception e){/*ignore*/

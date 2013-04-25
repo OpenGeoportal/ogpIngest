@@ -95,7 +95,7 @@ http://linuxdev.lib.berkeley.edu:8080/geoserver/UCB/wms?service=WMS&version=1.1.
 	}
 	
 	public Boolean isArcGISRest(String link){
-		if (link.toLowerCase().contains("ArcGIS/rest")){
+		if (link.toLowerCase().contains("arcgis/rest")){
 			return true;
 		} else {
 			return false;
