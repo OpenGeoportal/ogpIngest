@@ -8,7 +8,8 @@
   <url>http://maven.apache.org</url>
     <!-- Shared version number properties -->
 <properties>
-    <org.springframework.version>3.1.0.RELEASE</org.springframework.version>
+    <org.springframework.version>3.2.3.RELEASE</org.springframework.version>
+        <spring-security.version>3.1.4.RELEASE</spring-security.version>
 </properties>
   <dependencies>
  
@@ -263,34 +264,34 @@
         	<version>1.2</version>
         </dependency>
         <dependency>
-        	<groupId>poi</groupId>
+        	<groupId>org.apache.poi</groupId>
         	<artifactId>poi</artifactId>
         	<version>3.1-FINAL</version>
         </dependency>
         <dependency>
         	<groupId>org.springframework.security</groupId>
         	<artifactId>spring-security-web</artifactId>
-        	<version>3.1.1.RELEASE</version>
+        	<version>${spring-security.version}</version>
         </dependency>
         <dependency>
         	<groupId>org.springframework.security</groupId>
         	<artifactId>spring-security-core</artifactId>
-        	<version>3.1.1.RELEASE</version>
+        	<version>${spring-security.version}</version>
         </dependency>
         <dependency>
         	<groupId>org.springframework.security</groupId>
         	<artifactId>spring-security-ldap</artifactId>
-        	<version>3.1.1.RELEASE</version>
+        	<version>${spring-security.version}</version>
         </dependency>
         <dependency>
         	<groupId>org.springframework.security</groupId>
         	<artifactId>spring-security-config</artifactId>
-        	<version>3.1.1.RELEASE</version>
+        	<version>${spring-security.version}</version>
         </dependency>
         <dependency>
         	<groupId>org.springframework.security</groupId>
         	<artifactId>spring-security-taglibs</artifactId>
-        	<version>3.1.1.RELEASE</version>
+        	<version>${spring-security.version}</version>
         </dependency>
         <dependency>
         	<groupId>cglib</groupId>

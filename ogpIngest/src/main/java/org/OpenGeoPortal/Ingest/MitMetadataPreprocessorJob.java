@@ -20,10 +20,10 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 
-import org.OpenGeoPortal.Ingest.AbstractSolrIngest.MetadataElement;
 import org.OpenGeoPortal.Ingest.IngestResponse.IngestInfo;
 import org.OpenGeoPortal.Ingest.Metadata.ContactInfo;
 import org.OpenGeoPortal.Ingest.Metadata.MetadataConverter;
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
 import org.OpenGeoPortal.Ingest.Metadata.MetadataParseResponse;
 import org.OpenGeoPortal.Ingest.Metadata.Utilities;
 import org.OpenGeoPortal.Layer.AccessLevel;

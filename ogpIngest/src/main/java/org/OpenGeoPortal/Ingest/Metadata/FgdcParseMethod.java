@@ -3,10 +3,15 @@ package org.OpenGeoPortal.Ingest.Metadata;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.OpenGeoPortal.Keyword.PlaceKeywordThesaurusResolver;
+import org.OpenGeoPortal.Keyword.PlaceKeywords;
+import org.OpenGeoPortal.Keyword.ThemeKeywordThesaurusResolver;
+import org.OpenGeoPortal.Keyword.ThemeKeywords;
+import org.OpenGeoPortal.Keyword.KeywordThesauri.PlaceKeywordThesaurus;
+import org.OpenGeoPortal.Keyword.KeywordThesauri.ThemeKeywordThesaurus;
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.GeometryType;
-import org.OpenGeoPortal.Layer.PlaceKeywords;
-import org.OpenGeoPortal.Layer.ThemeKeywords;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -59,6 +64,12 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 		}
 	}
 	
+	@Autowired
+	ThemeKeywordThesaurusResolver themeKeywordThesaurusResolver;
+	
+	@Autowired
+	PlaceKeywordThesaurusResolver placeKeywordThesaurusResolver;
+
 	/**
 	 * return the correct value for the title tag
 	 * @param tagName
@@ -181,7 +192,10 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 							if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.PlaceKeywordsThesaurus.getTagName())){
 								logger.info("thesaurus: " + currentKeywordChild.getTextContent());
 								try {
-									placeKeywords.setThesaurus(getValidValue(currentKeywordChild.getTextContent()));
+									String rawThesaurus = getValidValue(currentKeywordChild.getTextContent());
+									PlaceKeywordThesaurus keywordThesaurus = placeKeywordThesaurusResolver.getPlaceKeywordThesaurus(rawThesaurus);
+									placeKeywords.setKeywordThesaurus(keywordThesaurus);
+									
 								} catch (DOMException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -219,7 +233,9 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 								if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.ThemeKeywordsThesaurus.getTagName())){
 									logger.info("thesaurus: " + currentKeywordChild.getTextContent());
 									try {
-										themeKeywords.setThesaurus(getValidValue(currentKeywordChild.getTextContent()));
+										String rawThesaurus = getValidValue(currentKeywordChild.getTextContent());
+										ThemeKeywordThesaurus keywordThesaurus = themeKeywordThesaurusResolver.getThemeKeywordThesaurus(rawThesaurus);
+										themeKeywords.setKeywordThesaurus(keywordThesaurus);
 									} catch (DOMException e) {
 
 									} catch (Exception e) {

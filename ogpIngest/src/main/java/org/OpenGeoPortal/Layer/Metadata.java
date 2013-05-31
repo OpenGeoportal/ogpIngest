@@ -3,6 +3,9 @@ package org.OpenGeoPortal.Layer;
 import java.util.List;
 import java.util.Set;
 
+import org.OpenGeoPortal.Keyword.PlaceKeywords;
+import org.OpenGeoPortal.Keyword.ThemeKeywords;
+
 
 public class Metadata {
 	BoundingBox bounds;

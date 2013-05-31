@@ -8,10 +8,16 @@ import java.util.Map;
 import org.OpenGeoPortal.Ingest.Metadata.TC211CodeListValues.ISO_CI_PresentationFormCode;
 import org.OpenGeoPortal.Ingest.Metadata.TC211CodeListValues.ISO_MD_GeometricObjectTypeCode;
 import org.OpenGeoPortal.Ingest.Metadata.TC211CodeListValues.ISO_MI_GeometryTypeCode;
+import org.OpenGeoPortal.Keyword.PlaceKeywordThesaurusResolver;
+import org.OpenGeoPortal.Keyword.PlaceKeywords;
+import org.OpenGeoPortal.Keyword.ThemeKeywordThesaurusResolver;
+import org.OpenGeoPortal.Keyword.ThemeKeywords;
+import org.OpenGeoPortal.Keyword.KeywordThesauri.IsoThemeKeywordThesaurus;
+import org.OpenGeoPortal.Keyword.KeywordThesauri.PlaceKeywordThesaurus;
+import org.OpenGeoPortal.Keyword.KeywordThesauri.ThemeKeywordThesaurus;
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.GeometryType;
-import org.OpenGeoPortal.Layer.PlaceKeywords;
-import org.OpenGeoPortal.Layer.ThemeKeywords;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -65,6 +71,12 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 		}
 	}
 
+	@Autowired
+	ThemeKeywordThesaurusResolver themeKeywordThesaurusResolver;
+	
+	@Autowired
+	PlaceKeywordThesaurusResolver placeKeywordThesaurusResolver;
+	
 	protected List<String> getDistributorFormats(){			/*
 		 //paper; no digital format
 		<gmd:distributorFormat>
@@ -684,7 +696,8 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 		//add the iso theme keyword
 		try {
 			ThemeKeywords isoThemeKeyword = new ThemeKeywords();
-			isoThemeKeyword.setThesaurus("ISO 19115");
+			
+			isoThemeKeyword.setKeywordThesaurus(this.themeKeywordThesaurusResolver.getThemeKeywordThesaurus("ISO 19115"));
 			isoThemeKeyword.addKeyword(this.getDocumentValue("topicCategory"));
 			themeKeywordList.add(isoThemeKeyword);
 		} catch (Exception e) {
@@ -777,10 +790,31 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 			NodeList keywordDetailNodes = mDKeywordsNode.getChildNodes();
 			String keywordValue = "";
 			String keywordType = "";
+			String rawThesaurus = "";
 			for (int j = 0; j < keywordDetailNodes.getLength(); j++){
 				Node currentDetailNode = keywordDetailNodes.item(j);
-
-				if (currentDetailNode.getNodeName().contains("keyword")){
+				/*
+				 *           <gmd:thesaurusName>
+            <gmd:CI_Citation>
+              <gmd:title>
+                <gco:CharacterString>GEMET - INSPIRE themes, version 1.0</gco:CharacterString>
+              </gmd:title>
+              <gmd:date gco:nilReason="unknown" />
+            </gmd:CI_Citation>
+          </gmd:thesaurusName>
+				 * 
+				 * 
+				 * 
+				 */
+				if (currentDetailNode.getNodeName().contains("thesaurusName")){
+					NodeList keywordThesaurusNodes = currentDetailNode.getFirstChild().getChildNodes();
+					for (int p = 0; p < keywordThesaurusNodes.getLength(); p++){
+						Node currentThesaurusNode = keywordThesaurusNodes.item(p);
+						if (currentThesaurusNode.getNodeName().toLowerCase().contains("title")){
+							rawThesaurus = currentThesaurusNode.getFirstChild().getTextContent();
+						}
+					}
+				} else if (currentDetailNode.getNodeName().contains("keyword")){
 					keywordValue = currentDetailNode.getTextContent().trim();
 					logger.debug("keyword value: " + keywordValue);
 				} else if (currentDetailNode.getNodeName().contains("type")){
@@ -810,12 +844,18 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 			if (!keywordValue.isEmpty()){
 				if (keywordType.equalsIgnoreCase("place")){
 					PlaceKeywords placeKeywords = new PlaceKeywords();
-					placeKeywords.setThesaurus("unspecified");
+					
+					PlaceKeywordThesaurus keywordThesaurus = placeKeywordThesaurusResolver.getPlaceKeywordThesaurus(rawThesaurus);
+					placeKeywords.setKeywordThesaurus(keywordThesaurus);
+					
 					placeKeywords.addKeyword(keywordValue);
 					placeKeywordList.add(placeKeywords);
 				} else {
 					ThemeKeywords themeKeywords = new ThemeKeywords();
-					themeKeywords.setThesaurus("unspecified");
+
+					ThemeKeywordThesaurus keywordThesaurus = themeKeywordThesaurusResolver.getThemeKeywordThesaurus(rawThesaurus);
+					themeKeywords.setKeywordThesaurus(keywordThesaurus);
+					
 					themeKeywords.addKeyword(keywordValue);
 					themeKeywordList.add(themeKeywords);
 				}

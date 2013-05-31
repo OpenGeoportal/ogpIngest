@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.OpenGeoPortal.Ingest.AbstractSolrIngest.MetadataElement;
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
 
 public class BasicMetadataUploadSubmitter extends AbstractIngestJobSubmitter implements MetadataUploadSubmitter {
 

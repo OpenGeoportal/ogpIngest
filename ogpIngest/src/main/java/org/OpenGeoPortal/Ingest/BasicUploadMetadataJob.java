@@ -9,9 +9,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import org.OpenGeoPortal.Ingest.AbstractSolrIngest.MetadataElement;
 import org.OpenGeoPortal.Ingest.IngestResponse.IngestInfo;
 import org.OpenGeoPortal.Ingest.Metadata.MetadataConverter;
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
 import org.OpenGeoPortal.Ingest.Metadata.MetadataParseResponse;
 import org.OpenGeoPortal.Layer.Metadata;
 import org.OpenGeoPortal.Utilities.ZipFilePackager;
@@ -208,7 +208,7 @@ public class BasicUploadMetadataJob implements UploadMetadataJob, Runnable {
 	
 			if (mapServerResponse.toLowerCase().contains("success")){
 				// store in database
-				String taskResponse;
+				String taskResponse = "";
 				try { 
 					taskResponse =  extraTasks.doTasks(metadata);
 					//this way, each institution can have it's own additional ingest actions if they desire

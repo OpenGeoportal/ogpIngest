@@ -50,6 +50,7 @@ public class OwsSolrIngest extends AbstractSolrIngest implements SolrIngest {
 		}
 		String location = "";
 		Set<LocationLink> links = metadata.getLocation();
+		logger.info("Links: " + Integer.toString(links.size()));
 		try{
 			Set<LocationLink> propertyLinks = ingestProperties.getLocation(metadata);
 			Set<LocationLink> unneededLinks = new HashSet<LocationLink>();
@@ -60,7 +61,10 @@ public class OwsSolrIngest extends AbstractSolrIngest implements SolrIngest {
 					LocationType currentType = currentLink.getLocationType();
 					Iterator<LocationLink> mlinkIterator = links.iterator();
 					while (mlinkIterator.hasNext()){
-						if (mlinkIterator.next().getLocationType().equals(currentType)){
+						LocationLink currentMetadataLink = mlinkIterator.next();
+						logger.info("link URL: " + currentMetadataLink.getURL().toString());
+						logger.info("link type: " + currentMetadataLink.getLocationType().toString());
+						if (currentMetadataLink.getLocationType().equals(currentType)){
 							unneededLinks.add(currentLink);
 							break;
 						}
@@ -69,10 +73,11 @@ public class OwsSolrIngest extends AbstractSolrIngest implements SolrIngest {
 			
 			propertyLinks.removeAll(unneededLinks);
 			links.addAll(propertyLinks);
-			location = locationLinksToString(links);
 		} catch (Exception e){
-			this.solrIngestResponse.addWarning("location", "location", "Online Location Error:" + e.getMessage(), "");
+			this.solrIngestResponse.addWarning("location", "location", "Online Location Error getting links from properties files:" + e.getMessage(), "");
 		}
+		location = locationLinksToString(links);
+
 		return location;
 	}
 

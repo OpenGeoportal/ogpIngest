@@ -1,6 +1,7 @@
 package org.OpenGeoPortal.Ingest;
 
 import java.net.MalformedURLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,6 +11,9 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
+import org.apache.solr.common.SolrDocumentList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,7 +56,7 @@ public class BasicRemoteSolrIngestJob implements RemoteSolrIngestJob, Runnable {
 				logger.info("Number found: " + Integer.toString(totalCount));
 			}
 			List<SolrExchangeRecord> beans = null;
-			//List<SolrDocument> solrdocs = null;
+			List<SolrDocument> solrdocs = null;
 			try{
 				//unmarshall the results from the query
 				//solrdocs = rsp.getResults();
@@ -71,13 +75,36 @@ public class BasicRemoteSolrIngestJob implements RemoteSolrIngestJob, Runnable {
 							solr.add(ClientUtils.toSolrInputDocument(docsiterator.next()));
 						}*/
 					} catch (Exception e){
-						logger.error("Error setting beans" + e.getMessage());
-						ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error setting beans" + e.getMessage());
+							logger.error("Error setting beans" + e.getMessage());
+							ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error setting beans" + e.getMessage());
 					}
 				}
 			} catch (Exception e){
-				logger.error("error getting beans" + e.getMessage());	
-				ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error getting beans" + e.getMessage());
+				logger.error("Error getting beans" + e.getMessage());
+				logger.error("trying SolrDocument");
+				try{
+					solrdocs = rsp.getResults();
+					if(!solrdocs.isEmpty()){
+					try {
+						//write the records to the local solr instance
+						//Boolean solrClientExists = (solrClient != null);
+						//logger.info("solrclientexists?: " + Boolean.toString(solrClientExists));
+						//solrClient.getSolrServer().
+						
+						Iterator<SolrDocument> docsiterator = solrdocs.iterator();
+						HttpSolrServer solr = solrClient.getSolrServer();
+						while (docsiterator.hasNext()){
+							solr.add(ClientUtils.toSolrInputDocument(docsiterator.next()));
+						}
+					} catch (Exception e2){
+							logger.error("Error setting docs" + e.getMessage());
+							ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error setting docs" + e.getMessage());
+					}}
+				} catch (Exception e1){
+					logger.error("Error getting beans" + e.getMessage());
+					ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error getting beans" + e.getMessage());
+				}
+
 
 			}
 

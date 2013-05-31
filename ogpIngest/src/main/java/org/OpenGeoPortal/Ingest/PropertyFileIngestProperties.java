@@ -19,7 +19,7 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 		try {
 			workspaceLogic = getProperty(institution + ".workspaceLogic");
 		} catch (NullPointerException e){}
-		
+		 
 		String prefix = institution;
 		if (workspaceLogic != null){
 			logger.info("workspaceLogic: " + workspaceLogic);
@@ -257,4 +257,5 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 			}
 		}
 	}
+
 }

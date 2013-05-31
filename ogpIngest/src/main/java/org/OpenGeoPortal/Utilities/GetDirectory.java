@@ -4,11 +4,12 @@ import java.io.File;
 import java.io.IOException;
 
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GetDirectory implements DirectoryRetriever {
 	private String relativePath;
-	@OgpLogger
-	Logger logger;
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 
 	/**
 	 * a method to set the relativePath property.  

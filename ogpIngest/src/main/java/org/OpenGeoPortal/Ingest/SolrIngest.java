@@ -2,7 +2,7 @@ package org.OpenGeoPortal.Ingest;
 
 import java.util.Set;
 
-import org.OpenGeoPortal.Ingest.AbstractSolrIngest.MetadataElement;
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
 import org.OpenGeoPortal.Layer.Metadata;
 
 public interface SolrIngest {

@@ -26,7 +26,17 @@ public class LocationLink {
 			this.isArray = isArray;
 		}
 		public final Boolean isArray;
+		
+		public static LocationType fromString(String locationTypeString) throws Exception{
+			for (LocationType locType: LocationType.values()){
+				if (locationTypeString.toLowerCase().contains(locType.toString().toLowerCase())){
+					return locType;
+				}
+			}
+			throw new Exception("LocationType could not be resolved from: '" + locationTypeString + "'");
+		}
 	}
+	
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 		public final LocationType locationType;
 		public URL url;

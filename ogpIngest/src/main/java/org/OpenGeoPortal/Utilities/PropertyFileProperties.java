@@ -26,7 +26,7 @@ public class PropertyFileProperties {
 		}
 		return properties.getProperty(propertyName);
 	}
-	
+	 
 	public Properties getProperties() throws IOException {
 		if (properties == null){
 			properties = new Properties();
@@ -34,5 +34,11 @@ public class PropertyFileProperties {
 			properties.load(MyInputStream);
 		}
 		return properties;
+	}
+	
+	public String[] getPropertyArray(String propertyName) throws IOException {
+		logger.info(propertyName);
+		logger.info(this.getProperty(propertyName));
+		return this.getProperty(propertyName).split(",");
 	}
 }

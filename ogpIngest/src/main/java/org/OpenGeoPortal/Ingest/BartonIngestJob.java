@@ -16,8 +16,8 @@ import java.util.UUID;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import org.OpenGeoPortal.Ingest.AbstractSolrIngest.MetadataElement;
 import org.OpenGeoPortal.Ingest.IngestResponse.IngestInfo;
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.GeometryType;
 import org.OpenGeoPortal.Layer.LocationLink;

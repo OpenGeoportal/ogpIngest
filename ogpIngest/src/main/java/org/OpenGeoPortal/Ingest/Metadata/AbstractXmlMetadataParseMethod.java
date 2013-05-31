@@ -20,9 +20,9 @@ import javax.xml.transform.stream.StreamResult;
 import org.OpenGeoPortal.Layer.BoundingBox;
 import org.OpenGeoPortal.Layer.LocationLink;
 import org.OpenGeoPortal.Layer.LocationLink.LocationType;
-import org.OpenGeoPortal.Utilities.OgpLogger;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -43,8 +43,8 @@ public abstract class AbstractXmlMetadataParseMethod {
 	public MetadataParseResponse metadataParseResponse;
 	public LocationResolver locationResolver;
 
-	@OgpLogger
-	public Logger logger;
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	/**
 	 * the keys to the state hash that the Solr file is generated from
 	 */

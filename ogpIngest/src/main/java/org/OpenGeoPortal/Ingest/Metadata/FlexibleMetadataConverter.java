@@ -11,19 +11,19 @@ import javax.xml.parsers.ParserConfigurationException;
 
 import org.OpenGeoPortal.Ingest.IngestProperties;
 import org.OpenGeoPortal.Layer.Metadata;
-import org.OpenGeoPortal.Utilities.OgpLogger;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
 public class FlexibleMetadataConverter implements MetadataConverter {
 	//how do I handle files or responses with multiple metadata records
-	@OgpLogger
-	Logger logger;
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	MetadataParseMethodProvider metadataParseMethodProvider;
 	IngestProperties ingestProperties;
 	DocumentBuilder documentBuilder = null;
@@ -64,24 +64,60 @@ public class FlexibleMetadataConverter implements MetadataConverter {
 			Metadata metadata  = metadataParseResponse.metadata;
 			metadata.setInstitution(institution);
 			if (metadata.getWorkspaceName() == null || metadata.getWorkspaceName().isEmpty()){
-				metadata.setWorkspaceName(ingestProperties.getWorkspace(metadata, institution));
+				String wsName = "";
+				try{
+					wsName = ingestProperties.getWorkspace(metadata, institution);
+				} catch(Exception e){
+					logger.info("no workspace name");
+				}
+				metadata.setWorkspaceName(wsName);
 			}
-			//store the original ows name here for the layer id, since we don't want all the prefixes
-			metadata.setId(metadata.getOwsName());
+
 			//should process the layer name here (ftname may or may not contain the appropriate prefix)
-			if (metadata.getOwsName() != null && !metadata.getOwsName().isEmpty()){
-				metadata.setOwsName(processOwsName(metadata, institution));
+			try{
+				logger.info("owsname is null: " + Boolean.toString(metadata.getOwsName() ==  null));
+				logger.info("institution is null: " + Boolean.toString(institution ==  null));
+
+				if (metadata.getOwsName() != null && !metadata.getOwsName().isEmpty()){
+					//store the original ows name here for the layer id, since we don't want all the prefixes
+					metadata.setId(metadata.getOwsName());
+					metadata.setOwsName(processOwsName(metadata, institution));
+				}
+			} catch (NullPointerException e){
+				logger.error("something here is null: " + e.getMessage());
+				logger.error(e.getCause().getClass().getName());
+				e.printStackTrace();
+				
 			}
 			return metadataParseResponse;
 	}
 	
 	private String processOwsName(Metadata metadata, String institution) throws IOException{
 		//should process the layer name here (ftname may or may not contain the appropriate prefix)
+
 			String layerNamePrefix = ingestProperties.getProperty(institution.toLowerCase() + ".layerPrefix");
+
 			String layerNameCase = ingestProperties.getProperty(institution.toLowerCase() + ".layerNameCase");
-			String owsName = metadata.getOwsName();
 			
-			if (layerNameCase.equalsIgnoreCase("uppercase")){
+			String owsName = "";
+			try {
+				owsName = metadata.getOwsName();
+				logger.info("ows name:" + owsName);
+
+			} catch (NullPointerException e){
+				logger.error("ows name is null");
+				return "";
+			}
+			if (owsName.isEmpty()){
+				return "";
+			}
+			logger.debug("layernamecase is null: " + Boolean.toString(layerNameCase ==  null));
+			logger.debug("owsname is null: " + Boolean.toString(owsName ==  null));
+
+
+			if (layerNameCase == null || layerNameCase.isEmpty()){
+				//leave the case as is
+			} else if (layerNameCase.equalsIgnoreCase("uppercase")){
 				owsName = owsName.toUpperCase();
 			} else if (layerNameCase.equalsIgnoreCase("lowercase")){
 				owsName = owsName.toLowerCase();
@@ -90,12 +126,16 @@ public class FlexibleMetadataConverter implements MetadataConverter {
 			} else {
 				//leave the case as is
 			}
-			if (layerNamePrefix != null){
+			
+			logger.debug("layernameprefix is null: " + Boolean.toString(layerNamePrefix ==  null));
+
+			if (layerNamePrefix != null && !layerNamePrefix.isEmpty()){
 				if (!owsName.contains(layerNamePrefix)){
 					owsName = layerNamePrefix + owsName;
 				}
 			} 
-		
+			logger.debug("owsname at the end is null: " + Boolean.toString(owsName ==  null));
+
 		return owsName;
 	}
 	
