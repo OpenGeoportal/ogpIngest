@@ -1,4 +1,3 @@
-This is a placeholder until I can put together a properly formatted version.
 
 OpenGeoportal Ingest
 Overview
