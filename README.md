@@ -103,5 +103,150 @@ Generally, the first stage of the process is to parse incoming metadata to popul
 If parsing is successful, the process continues with SolrIngest.  SolrIngest performs some validation on the Metadata fields (including enforcement of Required Fields) and converts the Metadata object into a SolrRecord object which can be directly ingested to a Solr instance via the SolrJ library.  Since all parsing processes result in a Metadata object, the same SolrIngest can be shared for each type of ingest process.
 
 
+-------------------------------------------------------
+
+ISO 19115/19139 parsing in ogpIngest:
+
+Title: “gmd:title”,
+Abstract: “gmd:abstract”,
+LayerName: “gmd:fileIdentifier",
+Bounds:
+<gmd:extent>
+        <gmd:EX_Extent>
+          <gmd:geographicElement>
+            <gmd:EX_GeographicBoundingBox>
+
+MinX: “westBoundLongitude",
+MaxX: “eastBoundLongitude",
+MaxY: “northBoundLatitude",
+MinY: "southBoundLatitude”,
+
+
+Access: 
+ <gmd:resourceConstraints>
+        <gmd:MD_LegalConstraints>
+          <gmd:accessConstraints>
+            <gmd:MD_RestrictionCode codeListValue="" codeList="http://www.isotc211.org/2005/resources/codeList.xml#MD_RestrictionCode" />
+
+          </gmd:accessConstraints>
+
+If the codeListValue starts with “restricted”, the record is marked “Restricted”.  Otherwise it is marked “Public”.
+
+
+Date:
+comes from DateTime:
+            <gmd:CI_Date>
+              <gmd:date>
+                <gco:DateTime>2005-03-03T09:00:00</gco:DateTime>
+
+              </gmd:date>
+
+Keywords:
+1. look at the node: “descriptiveKeywords”
+2. look for MD_Keywords —> keyword
+3. look at the associated MD_KeywordTypeCode.  If it is “place” the keyword is added to PlaceKeywords. otherwise it is a ThemeKeyword
+
+
+DataType:  
+1: look at CI_PresentationFormCode, attribute: codeListValue
+		switch (codeListValue) {
+        	case imageDigital: 
+        		dataType = GeometryType.Raster;
+        		break;
+        	case mapDigital: 
+        		dataType = // we parse a different field to get specific vector values
+        		break;
+        	case imageHardcopy: 
+        	case mapHardcopy:
+        		dataType = GeometryType.PaperMap;
+        		break;
+        	case documentDigital:
+        	case documentHardcopy:
+        		dataType = GeometryType.LibraryRecord;
+        	default: 
+        		//we don't know what to do with all these dataTypes right now.
+        		dataType = GeometryType.Undefined;	
+        		break;
+
+2: if DataType results in GeometryType.Undefined, 
+				String rawDataType = getAttributeValue("MD_SpatialRepresentationTypeCode", "codeListValue");
+				if (rawDataType.equalsIgnoreCase("vector")){
+					geomType = GeometryType.Polygon;
+
+								}
+
+3: if DataType is “mapDigital”, we look first for: MD_SpatialRepresentationTypeCode
+			if (dataType.equalsIgnoreCase("grid"))
+				geomType = GeometryType.Raster;
+			else if (dataType.equalsIgnoreCase("tin"))
+				geomType = GeometryType.Polygon;
+			else if (dataType.equalsIgnoreCase("vector")){
+				geomType = resolveVectorToGeometryType();
+			} else 
+				geomType = GeometryType.Undefined;
+	
+
+
+	If we don’t find it, we look for “MD_TopologyLevelCode”:
+		else if (xmlTag.equals("MD_TopologyLevelCode")){
+			if (dataType.equalsIgnoreCase("geometryOnly")){
+				geomType = resolveVectorToGeometryType();
+			}
+
+4: to further resolve the vector, we look first for MD_GeometricObjectTypeCode.  If we don’t find it: MI_GeometryTypeCode:
+	
+	protected GeometryType convertMD_GeometricObjectTypeCodeToGeometryType(ISO_MD_GeometricObjectTypeCode codeValue) throws Exception{
+		GeometryType geomType = GeometryType.Undefined;
+		switch (codeValue) {
+        	case complex: 
+        	case composite:
+        	case surface:
+        		geomType = GeometryType.Polygon;
+        		break;
+        	case curve: 
+        		geomType = GeometryType.Line;
+        		break;
+        	case point: 
+        		geomType = GeometryType.Point;
+        		break;
+        	default: 
+        		geomType = GeometryType.Undefined;	
+        		break;
+		}
+
+		return geomType;
+	}		
+
+	protected GeometryType convertMI_GeometryTypeCodeToGeometryType(ISO_MI_GeometryTypeCode codeValue) throws Exception{
+		GeometryType geomType = GeometryType.Undefined;
+		switch (codeValue) {
+        	case areal:
+        	case strip:
+        		geomType = GeometryType.Polygon;
+        		break;
+        	case linear: 
+        		geomType = GeometryType.Line;
+        		break;
+        	case point: 
+        		geomType = GeometryType.Point;
+        		break;
+        	default: 
+        		geomType = GeometryType.Undefined;	
+        		break;
+		}
+
+		return geomType;
+
+				}
+
+For Originator and Publisher, we examine all of the CI_RoleCode values in CI_ResponsibleParty nodes and look at the role codes.
+For Originator:
+	we look first for “originator”, then “author”, then “principalInvestigator”, then “owner"
+For Publisher:
+	we look first for “publisher”, then “distributor”, then “resourceProvider”, then “custodian”, then “processor”
+
+for the chosen CI_ResponsibleParty nodes, we take the first of “organisationName”, “individualName”, or “positionName"
+
+
 
 
