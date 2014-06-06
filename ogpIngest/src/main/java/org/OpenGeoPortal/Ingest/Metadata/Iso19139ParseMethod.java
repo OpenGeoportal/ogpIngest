@@ -659,14 +659,43 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
               </gmd:dateType>
             </gmd:CI_Date>
           </gmd:date>
+          
+                    <date>
+            <CI_Date>
+              <date>
+                <gco:Date>2011-07-05</gco:Date>
+              </date>
+              <dateType>
+                <CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="publication" codeSpace="ISOTC211/19115">publication</CI_DateTypeCode>
+              </dateType>
+            </CI_Date>
+          </date>
  */
+		String date = "";
+		String errorName = "";
+		String errorMessage = "";
 		try{
-			this.metadataParseResponse.metadata.setContentDate(getDocumentValue("DateTime").substring(0, 4));
+			date = getDocumentValue("Date");
+			date = date.substring(0,4);
+			logger.info("Date: " + date);
 		} catch (Exception e){
-			logger.error("handleDate: " + e.getMessage());
-			this.metadataParseResponse.addWarning("date", "date", e.getClass().getName(), e.getMessage());
+			try {
+				date = getDocumentValue("DateTime");
+				date = date.substring(0,4);
+			} catch (Exception e1){
+				logger.error("handleDate: " + e1.getMessage());
+				errorName = e1.getClass().getName();
+				errorMessage = e1.getMessage();
+			}
 		}
 		
+
+		if (date.length() > 1){
+			this.metadataParseResponse.metadata.setContentDate(date);
+		} else {
+			this.metadataParseResponse.addWarning("date", "date", errorName, errorMessage);
+		}
+
 	}
 
 	@Override
