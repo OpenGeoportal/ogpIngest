@@ -55,6 +55,28 @@ public class FlexibleMetadataConverter implements MetadataConverter {
 		return metadataParseResponse;
 	}
 	
+	public MetadataParseResponse bestEffortParse(File metadataFile) throws Exception {
+		if (!metadataFile.exists()){
+			//throw or log error
+			throw new IOException("File does not exist: " + metadataFile.getName());
+		}
+		if (!metadataFile.canRead()){
+			Boolean isReadable = false;
+			try {
+				isReadable = metadataFile.setReadable(true);
+			} catch (Exception e){
+				throw new IOException("File is not readable: " + metadataFile.getName());
+			}
+			if (!isReadable){
+				throw new IOException("File is not readable: " + metadataFile.getName());
+			}
+		}
+
+		InputStream inputStream = new FileInputStream(metadataFile);
+		MetadataParseResponse metadataParseResponse = handleMetadata(inputStream);
+		return metadataParseResponse;
+	}
+	
 	public MetadataParseResponse parse(InputStream metadataStream) throws Exception{
 		return parse (metadataStream, "");
 	}

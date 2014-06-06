@@ -87,6 +87,115 @@ public class Iso19139LocationResolver extends AbstractLocationResolver implement
 		throw new Exception("No browse graphic.");
 	}
 	
+	/*
+	 * 
+	 * 
+	 * <gmd:transferOptions>
+<gmd:MD_DigitalTransferOptions id="http___services_azgs_az_gov_ArcGIS_services_aasggeothermal_AZThermalSprings_MapServer_WFSServer_request_GetCapabilities_service_WFS">
+<gmd:onLine>
+<gmd:CI_OnlineResource>
+<gmd:linkage>
+<gmd:URL>http://services.azgs.az.gov/ArcGIS/services/aasggeothermal/AZThermalSprings/MapServer/WFSServer?request=GetCapabilities&amp;service=WFS</gmd:URL>
+</gmd:linkage>
+<gmd:protocol>
+<gco:CharacterString>OGC:WFS</gco:CharacterString>
+</gmd:protocol>
+<gmd:name>
+<gco:CharacterString>Service Description</gco:CharacterString>
+</gmd:name>
+<gmd:description>
+<gco:CharacterString> parameters: {"featureTypes": "OGC:WFS"}</gco:CharacterString>
+</gmd:description>
+<gmd:function>
+<gmd:CI_OnLineFunctionCode codeList="http://www.fgdc.gov/nap/metadata/register/registerItemClasses.html#IC_88" codeListValue="381">webService</gmd:CI_OnLineFunctionCode>
+</gmd:function>
+</gmd:CI_OnlineResource>
+</gmd:onLine>
+</gmd:MD_DigitalTransferOptions>
+</gmd:transferOptions>
+<gmd:transferOptions>
+<gmd:MD_DigitalTransferOptions id="http___services_azgs_az_gov_ArcGIS_services_aasggeothermal_AZThermalSprings_MapServer_WMSServer_request_GetCapabilities_service_WMS">
+<gmd:onLine>
+<gmd:CI_OnlineResource>
+<gmd:linkage>
+<gmd:URL>http://services.azgs.az.gov/ArcGIS/services/aasggeothermal/AZThermalSprings/MapServer/WMSServer?request=GetCapabilities&amp;service=WMS</gmd:URL>
+</gmd:linkage>
+<gmd:protocol>
+<gco:CharacterString>OGC:WMS</gco:CharacterString>
+</gmd:protocol>
+<gmd:name>
+<gco:CharacterString>Service Description</gco:CharacterString>
+</gmd:name>
+<gmd:description>
+<gco:CharacterString> parameters: {"layers": "OGC:WMS"}</gco:CharacterString>
+</gmd:description>
+<gmd:function>
+<gmd:CI_OnLineFunctionCode codeList="http://www.fgdc.gov/nap/metadata/register/registerItemClasses.html#IC_88" codeListValue="381">webService</gmd:CI_OnLineFunctionCode>
+</gmd:function>
+</gmd:CI_OnlineResource>
+</gmd:onLine>
+</gmd:MD_DigitalTransferOptions>
+</gmd:transferOptions>
+<gmd:transferOptions>
+<gmd:MD_DigitalTransferOptions id="http___services_azgs_az_gov_ArcGIS_rest_services_aasggeothermal_AZThermalSprings_MapServer">
+<gmd:onLine>
+<gmd:CI_OnlineResource>
+<gmd:linkage>
+<gmd:URL>http://services.azgs.az.gov/ArcGIS/rest/services/aasggeothermal/AZThermalSprings/MapServer</gmd:URL>
+</gmd:linkage>
+<gmd:protocol>
+<gco:CharacterString>ESRI</gco:CharacterString>
+</gmd:protocol>
+<gmd:name>
+<gco:CharacterString>Service Description</gco:CharacterString>
+</gmd:name>
+<gmd:function>
+<gmd:CI_OnLineFunctionCode codeList="http://www.fgdc.gov/nap/metadata/register/registerItemClasses.html#IC_88" codeListValue="381">webService</gmd:CI_OnLineFunctionCode>
+</gmd:function>
+</gmd:CI_OnlineResource>
+</gmd:onLine>
+</gmd:MD_DigitalTransferOptions>
+</gmd:transferOptions>
+<gmd:transferOptions>
+<gmd:MD_DigitalTransferOptions id="http___repository_stategeothermaldata_org_metadata_record_4e6b8f72f7d6c3856f092c6b85018dd1_file_azthermalsprings20131118_zip">
+<gmd:onLine>
+<gmd:CI_OnlineResource>
+<gmd:linkage>
+<gmd:URL>http://repository.stategeothermaldata.org/metadata/record/4e6b8f72f7d6c3856f092c6b85018dd1/file/azthermalsprings20131118.zip</gmd:URL>
+</gmd:linkage>
+<gmd:name>
+<gco:CharacterString>Zipped Excel file containing Thermal Springs data for the state of Arizona</gco:CharacterString>
+</gmd:name>
+<gmd:function>
+<gmd:CI_OnLineFunctionCode codeList="http://www.fgdc.gov/nap/metadata/register/registerItemClasses.html#IC_88" codeListValue="375">download</gmd:CI_OnLineFunctionCode>
+</gmd:function>
+</gmd:CI_OnlineResource>
+</gmd:onLine>
+</gmd:MD_DigitalTransferOptions>
+</gmd:transferOptions>
+<gmd:transferOptions>
+<gmd:MD_DigitalTransferOptions id="http___notifications_usgin_org_">
+<gmd:onLine>
+<gmd:CI_OnlineResource>
+<gmd:linkage>
+<gmd:URL>http://notifications.usgin.org/</gmd:URL>
+</gmd:linkage>
+<gmd:name>
+<gco:CharacterString>NGDS RSS feed for services notifications</gco:CharacterString>
+</gmd:name>
+<gmd:function>
+<gmd:CI_OnLineFunctionCode codeList="http://www.fgdc.gov/nap/metadata/register/registerItemClasses.html#IC_88" codeListValue="375">download</gmd:CI_OnLineFunctionCode>
+</gmd:function>
+</gmd:CI_OnlineResource>
+</gmd:onLine>
+</gmd:MD_DigitalTransferOptions>
+</gmd:transferOptions>
+
+	 * 
+	 * 
+	 * 
+	 * 
+	 */
 	public Set<LocationLink> getLinksFromCI_OnlineResource(Document xmlDocument){
 		Set<LocationLink> linkValueSet = new HashSet<LocationLink>();
 		NodeList linkNodes = xmlDocument.getElementsByTagNameNS("*", "CI_OnlineResource");

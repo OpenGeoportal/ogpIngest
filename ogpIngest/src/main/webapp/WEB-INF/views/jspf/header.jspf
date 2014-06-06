@@ -22,11 +22,14 @@
 <link rel="stylesheet" href="<c:url value="/resources/css/jquery.fileupload-ui.css" />">
 <link href="<c:url value="/resources/form.css" />" rel="stylesheet"
 	type="text/css" />
-<script type="text/javascript"
+<!--  <script type="text/javascript"
 	src="//ajax.googleapis.com/ajax/libs/jquery/1.10.0/jquery.min.js"></script>
 	<script type="text/javascript"
-	src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
-	
+	src="//ajax.googleapis.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>-->
+	<script type="text/javascript"
+	src="//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+	<script type="text/javascript"
+	src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.21/jquery-ui.min.js"></script>
 <script type="text/javascript"
 	src="<c:url value="/resources/javascript/jqueryform/2.8/jquery.form.js" />"></script>
 <!-- Shim to make HTML5 elements usable in older Internet Explorer versions -->

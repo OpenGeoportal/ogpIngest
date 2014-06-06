@@ -11,4 +11,6 @@
 					<option value="Columbia">Columbia</option>
 					<option value="UN">UN</option>
 					<option value="UNWFP">UN WFP</option>
+					<option value="OKGIS">OK GIS</option>
+					<option value="USGS">USGS</option>
 				</select>

@@ -151,7 +151,7 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 		try {
 			String rawDataType = getAttributeValue("CI_PresentationFormCode", "codeListValue");
 			ISO_CI_PresentationFormCode codeValue = ISO_CI_PresentationFormCode.parseISOPresentationFormCode(rawDataType);
-			setGeometryType(convertCI_PresentationCodeToGeometryType(codeValue));
+			geomType = convertCI_PresentationCodeToGeometryType(codeValue);
 		} catch (Exception e){
 			List<String> distributorFormats = getDistributorFormats();
 			if (distributorFormats.contains("no digital")){
@@ -161,12 +161,31 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 			}
 			setGeometryType(geomType);
 		}
+		if (geomType.equals(GeometryType.Undefined)){
+			try {
+				String rawDataType = getAttributeValue("MD_SpatialRepresentationTypeCode", "codeListValue");
+				if (rawDataType.equalsIgnoreCase("vector")){
+					geomType = GeometryType.Polygon;
+				}
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			/*
+			 *       <gmd:spatialRepresentationType>
+        <gmd:MD_SpatialRepresentationTypeCode codeListValue="vector" codeList="http://www.isotc211.org/2005/resources/codeList.xml#MD_SpatialRepresentationTypeCode" />
+      </gmd:spatialRepresentationType>
+			 */
+		}
+		setGeometryType(geomType);
 	}
 		
 	protected GeometryType getMapDigitalGeometryType(){
 		String dataType = null;
 		String xmlTag = null;
 		GeometryType geomType = GeometryType.Undefined;
+
 		try {
 			xmlTag = "MD_SpatialRepresentationTypeCode";
 			dataType = getAttributeValue(xmlTag, "codeListValue");
@@ -176,7 +195,7 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 				dataType = getAttributeValue(xmlTag, "codeListValue");
 			} catch (Exception e1){
 				logger.info("Exception getting SpatialRepresentationTypeCode and MD_TopologyLevelCode: DataType:" + geomType.toString());
-				return geomType;
+				return resolveVectorToGeometryType();
 			}
 		}
 //      <gmd:MD_SpatialRepresentationTypeCode codeListValue="grid" codeList="http://www.isotc211.org/2005/resources/codeList.xml#MD_SpatialRepresentationTypeCode" />
@@ -207,6 +226,11 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 	}
 			
 	protected GeometryType resolveVectorToGeometryType(){
+		logger.info("resolveVectorToGeometryType");
+		/*
+		 * <gmd:spatialRepresentationInfo>
+<gmd:MD_VectorSpatialRepresentation>
+		 */
 		GeometryType geomType = GeometryType.Undefined;
 		try {
 			String code = this.getAttributeValue("MI_GeometryTypeCode", "codeListValue");
@@ -220,7 +244,7 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 		}
 		if (geomType.equals(GeometryType.Undefined)){
 			//generic vector 
-			geomType = GeometryType.Line;
+			geomType = GeometryType.Polygon;
 		}
 		return geomType;
 	}
@@ -695,11 +719,11 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 		List<PlaceKeywords> placeKeywordList = new ArrayList<PlaceKeywords>();
 		//add the iso theme keyword
 		try {
-			ThemeKeywords isoThemeKeyword = new ThemeKeywords();
+			//ThemeKeywords isoThemeKeyword = new ThemeKeywords();
 			
-			isoThemeKeyword.setKeywordThesaurus(this.themeKeywordThesaurusResolver.getThemeKeywordThesaurus("ISO 19115"));
-			isoThemeKeyword.addKeyword(this.getDocumentValue("topicCategory"));
-			themeKeywordList.add(isoThemeKeyword);
+			//isoThemeKeyword.setKeywordThesaurus(this.themeKeywordThesaurusResolver.getThemeKeywordThesaurus("ISO 19115"));
+			//isoThemeKeyword.addKeyword(this.getDocumentValue("topicCategory"));
+			//themeKeywordList.add(isoThemeKeyword);
 		} catch (Exception e) {
 			e.printStackTrace();
 			logger.error("No ISO topic category found");
@@ -807,16 +831,20 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 				 * 
 				 */
 				if (currentDetailNode.getNodeName().contains("thesaurusName")){
-					NodeList keywordThesaurusNodes = currentDetailNode.getFirstChild().getChildNodes();
-					for (int p = 0; p < keywordThesaurusNodes.getLength(); p++){
-						Node currentThesaurusNode = keywordThesaurusNodes.item(p);
-						if (currentThesaurusNode.getNodeName().toLowerCase().contains("title")){
-							rawThesaurus = currentThesaurusNode.getFirstChild().getTextContent();
+					if (currentDetailNode.hasChildNodes()){
+						NodeList keywordThesaurusNodes = currentDetailNode.getFirstChild().getChildNodes();
+						for (int p = 0; p < keywordThesaurusNodes.getLength(); p++){
+							Node currentThesaurusNode = keywordThesaurusNodes.item(p);
+							if (currentThesaurusNode.getNodeName().toLowerCase().contains("title")){
+								rawThesaurus = currentThesaurusNode.getFirstChild().getTextContent();
+							}
 						}
+					} else {
+						rawThesaurus = "none";
 					}
 				} else if (currentDetailNode.getNodeName().contains("keyword")){
 					keywordValue = currentDetailNode.getTextContent().trim();
-					logger.debug("keyword value: " + keywordValue);
+					logger.info("keyword value: " + keywordValue);
 				} else if (currentDetailNode.getNodeName().contains("type")){
 					NodeList keywordTypeNodes = currentDetailNode.getChildNodes();
 					for (int n = 0; n < keywordTypeNodes.getLength(); n++){
@@ -826,7 +854,7 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 						}
 					}		
 							
-					logger.debug("keyword type: " + keywordType);
+					logger.info("keyword type: " + keywordType);
 				}
 				//keyword CharacterString
 				//type  MD_KeywordTypeCode attr: codeListValue
@@ -845,16 +873,16 @@ public class Iso19139ParseMethod extends AbstractXmlMetadataParseMethod implemen
 				if (keywordType.equalsIgnoreCase("place")){
 					PlaceKeywords placeKeywords = new PlaceKeywords();
 					
-					PlaceKeywordThesaurus keywordThesaurus = placeKeywordThesaurusResolver.getPlaceKeywordThesaurus(rawThesaurus);
-					placeKeywords.setKeywordThesaurus(keywordThesaurus);
+					//PlaceKeywordThesaurus keywordThesaurus = placeKeywordThesaurusResolver.getPlaceKeywordThesaurus(rawThesaurus);
+					//placeKeywords.setKeywordThesaurus(keywordThesaurus);
 					
 					placeKeywords.addKeyword(keywordValue);
 					placeKeywordList.add(placeKeywords);
 				} else {
 					ThemeKeywords themeKeywords = new ThemeKeywords();
 
-					ThemeKeywordThesaurus keywordThesaurus = themeKeywordThesaurusResolver.getThemeKeywordThesaurus(rawThesaurus);
-					themeKeywords.setKeywordThesaurus(keywordThesaurus);
+					//ThemeKeywordThesaurus keywordThesaurus = themeKeywordThesaurusResolver.getThemeKeywordThesaurus(rawThesaurus);
+					//themeKeywords.setKeywordThesaurus(keywordThesaurus);
 					
 					themeKeywords.addKeyword(keywordValue);
 					themeKeywordList.add(themeKeywords);

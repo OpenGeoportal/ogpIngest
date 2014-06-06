@@ -29,7 +29,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.multipart.MultipartFile;
 
 @Controller
-@RequestMapping("/metadataUpload")
+@RequestMapping("/oldMetadataUpload")
 public class MetadataUploadController {
 	@Autowired
 	private MetadataUploadSubmitter metadataUploadSubmitter;

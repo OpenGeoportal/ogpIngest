@@ -138,13 +138,13 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				solrIngestResponse.addError("Content Date", "Date", "Unspecified error setting value.", "");
 			}
 			try{
-				solrRecord.setThemeKeywords(processThemeKeywords());
+				//solrRecord.setThemeKeywords(processThemeKeywords());
 			} catch (Exception e){
 				solrIngestResponse.addError("Theme Keywords", "themekeywords", "Unspecified error setting value.", "");
 				e.printStackTrace();
 			}
 			try{
-				solrRecord.setPlaceKeywords(processPlaceKeywords());
+				//solrRecord.setPlaceKeywords(processPlaceKeywords());
 			} catch (Exception e){
 				solrIngestResponse.addError("Place Keywords", "placekeywords", "Unspecified error setting value.", "");
 			}

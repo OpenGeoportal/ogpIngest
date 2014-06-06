@@ -92,7 +92,7 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 		Document document = null;
 		try {
 			URL wmsCapabilities = new URL(wmsEndpoint
-					+ "?request=getCapabilities&version=" + VERSION);
+					+ "?service=wms&request=getCapabilities&version=" + VERSION);
 
 			InputStream inputStream = wmsCapabilities.openStream();
 			// parse the returned XML
@@ -131,27 +131,30 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 			throw new Exception(msg);
 		}
 		
-		NodeList elementNodes = layerNode.getChildNodes();
-		for (int i = 0; i < elementNodes.getLength(); i++){
-						
-			Node layerElement = elementNodes.item(i);
-			if (layerElement.getNodeName().equalsIgnoreCase("Layer")){
-				WMSMetadata metadata = processLayerNode(layerElement);
-				Metadata augmentedMetadata = null;
-				if (metadata.hasMetadataUrl()){
-					try {
-						augmentedMetadata = augmentMetadata(metadata);
-						ingestToSolr(augmentedMetadata);
-						continue;
+		NodeList layerNodes = document.getElementsByTagName("Layer");
+		for (int i = 0; i < layerNodes.getLength(); i++){
+			Node layerElement = layerNodes.item(i);
+					WMSMetadata metadata = null;
+	
+					try{
+						metadata = processLayerNode(layerElement);
 					} catch (Exception e) {
-						logger.error("Unable to augment GetCapabilities metadata with linked xml.");
-						ingestToSolr(metadata);
-						e.printStackTrace();
+						continue;
 					}
-				}
+					Metadata augmentedMetadata = null;
+					if (metadata.hasMetadataUrl()){
+						try {
+							augmentedMetadata = augmentMetadata(metadata);
+							ingestToSolr(augmentedMetadata);
+							continue;
+						} catch (Exception e) {
+							logger.error("Unable to augment GetCapabilities metadata with linked xml.");
+							ingestToSolr(metadata);
+							e.printStackTrace();
+						}
+					}
 				
-				ingestToSolr(metadata);
-			}
+					ingestToSolr(metadata);
 
 		}
 		ingestStatus.setJobStatus(IngestJobStatus.Succeeded);
@@ -233,7 +236,7 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 		}
 	};
 	
-	private WMSMetadata processLayerNode(Node layer) {
+	private WMSMetadata processLayerNode(Node layer) throws Exception {
 		/*
 		 * 
 <Layer queryable="0">
@@ -278,13 +281,18 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 		metadata.setPlaceKeywords(new ArrayList<PlaceKeywords>());
 		
 		NodeList layerNodes = layer.getChildNodes();
+		Boolean hasName = false;
 		for (int k = 0; k < layerNodes.getLength(); k++){
 			Node currentLayerNode = layerNodes.item(k);
 			String tag = currentLayerNode.getNodeName();
 			logger.debug(tag);
 			//parse layer name
 			if (tag.equalsIgnoreCase("Name")){
+				logger.info("Has name");
+				logger.info(currentLayerNode.getTextContent());
+				hasName = true;
 				addName(metadata, currentLayerNode);
+				logger.info(metadata.getOwsName());
 			//parse bounds
 			} else if (tag.equalsIgnoreCase("Title")){
 				addTitle(metadata, currentLayerNode);
@@ -299,7 +307,9 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 				addMetadataUrl(metadata, currentLayerNode);
 			}
 		}
-		
+		if (!hasName){
+			throw new Exception("No value for name!");
+		}
 		calculateLocation(metadata);
 		logger.info("After calculate location: " + Integer.toString(metadata.getLocation().size()));
 		
@@ -367,6 +377,7 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 				qualifiedName = metadata.getWorkspaceName() + ":" + metadata.getOwsName();
 			} else {
 				qualifiedName = metadata.getOwsName();
+				logger.info(qualifiedName);
 			}
 			LocationLink owsLink = getOwsUrl(qualifiedName);
 
@@ -402,6 +413,13 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 		 * <LayerDescription name="sde:GISPORTAL.GISOWNER01.LANDINFO_K01C" owsURL="http://geoserver01.uit.tufts.edu:80/wcs?" owsType="WCS">
 		 * <Query typeName="sde:GISPORTAL.GISOWNER01.LANDINFO_K01C"/></LayerDescription></WMS_DescribeLayerResponse>
 		 */
+		/*
+		 * 
+		 * <WMS_DescribeLayerResponse version="1.1.0"><LayerDescription name="Framework.RESERVE" wfs="http://frameworkwfs.usgs.gov/framework/wms/wms.cgi?DATASTORE=Framework"><Query typeName="RESERVE"/></LayerDescription></WMS_DescribeLayerResponse>
+		 * 
+		 * 
+		 * 
+		 */
 		logger.info("Requesting 'DescribeLayer' info for '" + layerName + "'");
    		URL describeLayer = new URL(wmsEndpoint + "?request=describeLayer&" +
    				"layers=" + layerName + "&version=" + VERSION);
@@ -412,10 +430,30 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 
 		Node description = document.getElementsByTagName("LayerDescription").item(0);
 		NamedNodeMap attributes = description.getAttributes();
-		URL url = new URL(attributes.getNamedItem("owsURL").getTextContent().trim());
-		logger.debug("owsURL:" + url.toString());
-		String type = attributes.getNamedItem("owsType").getTextContent().trim();
-		logger.debug("owsType:" + type);
+		Node owsUrl = null;
+		URL url = null;
+		String type = null;
+		try {
+			owsUrl = attributes.getNamedItem("owsURL");
+			if (owsUrl == null){
+				owsUrl = attributes.getNamedItem("wfs");
+				if (owsUrl == null){
+					owsUrl = attributes.getNamedItem("wcs");
+					type = "wcs";
+					url = new URL(owsUrl.getTextContent().trim());
+				} else {
+					type = "wfs";
+					url = new URL(owsUrl.getTextContent().trim());
+				}
+			} else {
+				type = attributes.getNamedItem("owsType").getTextContent().trim();
+				url = new URL(owsUrl.getTextContent().trim());
+				logger.debug("owsURL:" + url.toString());
+				logger.debug("owsType:" + type);
+			}
+		} catch (Exception e){
+		}
+
 		
 		LocationLink link = new LocationLink(LocationType.fromString(type), url);
 		
@@ -437,8 +475,8 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 						addMassGISMetadataLink(metadata, keyword);
 					} else {
 						ThemeKeywords keywords = new ThemeKeywords();
-						keywords.setKeywordThesaurus((ThemeKeywordThesaurus) new UnspecifiedKeywordThesaurus());
-						keywords.addKeyword(keyword);
+						//keywords.setKeywordThesaurus((ThemeKeywordThesaurus) new UnspecifiedKeywordThesaurus());
+						//keywords.addKeyword(keyword);
 						themeKeywords.add(keywords);
 					}
 				}
@@ -474,8 +512,12 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 	}
 
 
-	public void addName(WMSMetadata metadata, Node nameNode){
+	public void addName(WMSMetadata metadata, Node nameNode) throws Exception{
 		String qualifiedLayerName = nameNode.getTextContent().trim();
+		if (qualifiedLayerName.isEmpty()){
+			logger.info("name is empty");
+			throw new Exception("Name is required!");
+		}
 		logger.debug("Adding qualified layer name..'" + qualifiedLayerName + "'");
 
 		int delimiterIdx = qualifiedLayerName.indexOf(":");
@@ -484,10 +526,13 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 		if (delimiterIdx > -1){
 			layerName = qualifiedLayerName.substring(delimiterIdx + 1);
 			workspaceName = qualifiedLayerName.substring(0, delimiterIdx);
+		} else {
+			layerName = qualifiedLayerName;
 		}
 		metadata.setOwsName(layerName);
 		metadata.setWorkspaceName(workspaceName);
-		metadata.setId(institution + "." + layerName);
+		
+		metadata.setId(layerName);
 	}
 	
 	public void addBounds(WMSMetadata metadata, Node geographicBoundsNode){
@@ -502,7 +547,7 @@ public class WMSCapabilitiesIngestJobImpl implements WMSCapabilitiesIngestJob, R
 		maxX = geographicBoundsNode.getAttributes().getNamedItem("maxx").getTextContent().trim();
 		maxY = geographicBoundsNode.getAttributes().getNamedItem("maxy").getTextContent().trim();
 		
-		logger.debug("Adding bounds..[" + minX + "," + minY + "," + maxX + "," + maxY + "]");
+		logger.info("Adding bounds..[" + minX + "," + minY + "," + maxX + "," + maxY + "]");
 
 		metadata.setBounds(new BoundingBox(minX, minY, maxX, maxY));
 

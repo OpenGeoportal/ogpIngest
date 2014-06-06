@@ -64,13 +64,22 @@ public abstract class AbstractXmlMetadataParseMethod {
 			handleAbstract();
 			handleLocation();
 			handlePublisher();
+			logger.info("publisher");
 			handleOriginator();
+			logger.info("originator");
 			handleBounds();
+			logger.info("bounds");
 			handleKeywords();
+			logger.info("keywords");
 			handleAccess();
+			logger.info("access");
 			handleDataType();
+			logger.info("datatype");
 			handleFullText();
+			logger.info("fulltext");
 			handleDate();
+			logger.info("date");
+
 			metadataParseResponse.metadataParsed = true;
 			return metadataParseResponse;
 		}
@@ -99,7 +108,7 @@ public abstract class AbstractXmlMetadataParseMethod {
 							String[] nameArray = layerName.split(":");
 							workspaceName = nameArray[0];
 							layerName = nameArray[1];
-							logger.info(layerName);
+							//logger.info(layerName);
 						}
 						break;
 					}
@@ -117,6 +126,7 @@ public abstract class AbstractXmlMetadataParseMethod {
 		} catch (Exception e){
 			this.metadataParseResponse.addWarning("layername", "layername", e.getClass().getName(), e.getMessage());
 		}
+		logger.info("finished handleLocation");
 	}
 
 	abstract void handleOriginator();
