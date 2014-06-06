@@ -2,7 +2,6 @@ package org.OpenGeoPortal.Solr;
 
 import java.io.IOException;
 
-import org.OpenGeoPortal.Utilities.OgpLogger;
 import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.SolrServerException;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
@@ -10,13 +9,14 @@ import org.apache.solr.client.solrj.response.QueryResponse;
 import org.apache.solr.client.solrj.response.UpdateResponse;
 import org.apache.solr.common.SolrException;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SolrJClient implements SolrClient{
 	
 	//private String solrUrl;
 	private HttpSolrServer solrServer;
-	@OgpLogger
-	public Logger logger;
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	String solrUrl;
 	
 	public SolrJClient(String solrUrl) {

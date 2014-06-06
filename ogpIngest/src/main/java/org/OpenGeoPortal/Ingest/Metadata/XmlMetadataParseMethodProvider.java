@@ -1,5 +1,7 @@
 package org.OpenGeoPortal.Ingest.Metadata;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.BeanFactoryAware;
@@ -7,7 +9,8 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
 public class XmlMetadataParseMethodProvider implements MetadataParseMethodProvider, BeanFactoryAware {
-	
+	final static Logger LOGGER = LoggerFactory.getLogger(XmlMetadataParseMethodProvider.class);
+
 	public static MetadataType getMetadataType(Document document) throws Exception {
 		//could be useful elsewhere, so might go in a different class
 		//Since we are not validating, this is a little kludgey
@@ -15,7 +18,8 @@ public class XmlMetadataParseMethodProvider implements MetadataParseMethodProvid
 		try {
 			//<metstdn>FGDC Content Standards for Digital Geospatial Metadata
 			//<metstdv>FGDC-STD-001-1998
-			if (document.getElementsByTagName("metstdn").item(0).getTextContent().toLowerCase().contains("fgdc")){
+			if (document.getElementsByTagName("metstdn").item(0).getTextContent().toLowerCase().contains("fgdc")||
+					document.getElementsByTagName("metstdv").item(0).getTextContent().toLowerCase().contains("fgdc")){
 				metadataType = MetadataType.FGDC;
 			}
 		} catch (Exception e){/*ignore*/
@@ -29,11 +33,11 @@ public class XmlMetadataParseMethodProvider implements MetadataParseMethodProvid
 			  //  <gco:CharacterString>ISO 19115:2003/19139</gco:CharacterString>
 			  //</gmd:metadataStandardName>
 			//existence of these two tags (ignoring namespace) should be good enough
-			NodeList standardNodes = document.getElementsByTagNameNS("*", "metadataStandardName");
+			NodeList standardNodes = document.getElementsByTagNameNS("*", "MD_Metadata");
+			//LOGGER.info("MD_Metadata found" + Integer.toString(test.getLength()));
 			if (standardNodes.getLength() > 0){
-				if (standardNodes.item(0).getTextContent().contains("19139")){
 					metadataType = MetadataType.ISO_19139;
-				}
+				
 			}
 		} catch (Exception e){/*ignore*/}
 

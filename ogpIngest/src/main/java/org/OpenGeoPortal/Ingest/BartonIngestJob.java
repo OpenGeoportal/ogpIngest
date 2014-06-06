@@ -2,6 +2,7 @@ package org.OpenGeoPortal.Ingest;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -15,10 +16,12 @@ import java.util.UUID;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 
-import org.OpenGeoPortal.Ingest.AbstractSolrIngest.MetadataElement;
 import org.OpenGeoPortal.Ingest.IngestResponse.IngestInfo;
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.GeometryType;
+import org.OpenGeoPortal.Layer.LocationLink;
+import org.OpenGeoPortal.Layer.LocationLink.LocationType;
 import org.OpenGeoPortal.Layer.Metadata;
 import org.OpenGeoPortal.Solr.SolrClient;
 import org.OpenGeoPortal.Utilities.AllTrustingTrustManager;
@@ -281,10 +284,12 @@ public class BartonIngestJob implements LibraryRecordIngestJob, Runnable {
         }
         if (source.equalsIgnoreCase("barton")){
 			metadata.setId("LIBRARY_" + localId);
-        	metadata.setLocation("{\"libRecord\":\"http://library.mit.edu/item/" + metadata.getOwsName() + "\"}");
+			metadata.addLocation(new LocationLink(LocationType.libRecord, new URL("http://library.mit.edu/item/" + metadata.getOwsName())));
+        	//metadata.setLocation("{\"libRecord\":\"http://library.mit.edu/item/" + metadata.getOwsName() + "\"}");
 		} else {
 			metadata.setId("UNCATALOGED_" + localId);
-        	metadata.setLocation("{\"mapRecord\":\"https://arrowsmith.mit.edu/utilities/paperlookup.php?id=" + metadata.getOwsName() + "\"}");
+			metadata.addLocation(new LocationLink(LocationType.mapRecord, new URL("https://arrowsmith.mit.edu/utilities/paperlookup.php?id=" + metadata.getOwsName())));
+        	//metadata.setLocation("{\"mapRecord\":\"https://arrowsmith.mit.edu/utilities/paperlookup.php?id=" + metadata.getOwsName() + "\"}");
 		}
         if (extraFields.size() > 0){
         	logger.info("Extra Fields:" + extraFields.size() + ":" + extraFields.toString());

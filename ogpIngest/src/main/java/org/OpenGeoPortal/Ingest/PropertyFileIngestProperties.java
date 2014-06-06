@@ -1,13 +1,15 @@
 package org.OpenGeoPortal.Ingest;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
+import java.net.URL;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Set;
 
 import org.OpenGeoPortal.Layer.GeometryType;
+import org.OpenGeoPortal.Layer.LocationLink;
 import org.OpenGeoPortal.Layer.Metadata;
+import org.OpenGeoPortal.Layer.LocationLink.LocationType;
 import org.OpenGeoPortal.Utilities.PropertyFileProperties;
 
 public class PropertyFileIngestProperties extends PropertyFileProperties implements IngestProperties {
@@ -17,7 +19,7 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 		try {
 			workspaceLogic = getProperty(institution + ".workspaceLogic");
 		} catch (NullPointerException e){}
-		
+		 
 		String prefix = institution;
 		if (workspaceLogic != null){
 			logger.info("workspaceLogic: " + workspaceLogic);
@@ -34,12 +36,51 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				}
 			}
 			prefix += "." + logicString;
-		} 
-		logger.debug(prefix + ".GeoServerWorkspace");
-		return getProperty(prefix + ".GeoServerWorkspace");
+			logger.debug(prefix + ".GeoServerWorkspace");
+			return getProperty(prefix + ".GeoServerWorkspace");
+		} else {
+			return ""; //no workspace
+		}
+
 	}
 	
-	public String getLocation(Metadata metadata) throws IOException {
+	public Set<LocationLink> getLocation(Metadata metadata) throws IOException {
+		Set<LocationLink> links = new HashSet<LocationLink>();
+		try{
+		String locationPrefix = metadata.getInstitution().toLowerCase() + ".location.";
+		String accessString = metadata.getAccess().toString().toLowerCase();
+		//Map<String,String> locationMap = new HashMap<String,String>();
+		GeometryType dataType = metadata.getGeometryType();
+		Properties properties = getProperties();
+		Set<String> propertyNames = properties.stringPropertyNames();
+		for (String key: propertyNames){
+			//we only want location info for our layer's institution
+			if (key.startsWith(locationPrefix)){
+				if (key.contains("geoserver")){
+					handleLocationGeoserver(key, accessString, dataType, links);
+				} else if (key.contains("wms")){
+					handleLocationWms(key, accessString, links);
+				} else if (key.contains("wfs")){
+					handleLocationWfs(key, accessString, dataType, links);
+				} else if (key.contains("wcs")){
+					handleLocationWcs(key, accessString, dataType, links);
+				} else if (key.contains("tilecache")){
+					handleLocationTilecache(key, accessString, links);
+				} else if (key.contains("serviceStart")){
+					handleLocationServiceStart(key, links);
+				} else if (key.contains("download")){
+					handleLocationDownload(key, links);
+				}
+			}
+		}		
+		return links;
+
+		} catch (Exception e){
+			throw new IOException();
+		}
+	}
+	
+	/*public String getLocation(Metadata metadata) throws IOException {
 		try{
 		String locationPrefix = metadata.getInstitution().toLowerCase() + ".location.";
 		String accessString = metadata.getAccess().toString().toLowerCase();
@@ -76,59 +117,62 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				locationString += "\"" + protocol + "\":\"" + currentLocation + "\",";
 			}
 		}
-		locationString = "{" + locationString.substring(0, locationString.length() - 1) + "}";
-
+		if (!locationString.isEmpty()){
+			locationString = "{" + locationString.substring(0, locationString.length() - 1) + "}";
+		}
 		return locationString;
 		} catch (Exception e){
 			throw new IOException();
 		}
-	}
+	}*/
 
 	private void handleLocationTilecache(String key, String accessString,
-			Map<String, String> locationMap) throws IOException {
+			Set<LocationLink> links) throws IOException {
 		String[] keyArray = key.split("\\.");
+		String rawLocationString = null;
 		if (keyArray[2].equalsIgnoreCase("tilecache")){
 			//no access info
-			String rawLocationString = getProperty(key);
-			locationMap.put("tilecache", rawLocationString);
+			rawLocationString = getProperty(key);
+			links.add(new LocationLink(LocationType.tilecache, new URL(rawLocationString)));
 		} else if(keyArray[2].equalsIgnoreCase(accessString)){
-			String rawLocationString = getProperty(key);
-			locationMap.put("tilecache", rawLocationString);
+			rawLocationString = getProperty(key);
+			links.add(new LocationLink(LocationType.tilecache, new URL(rawLocationString)));
 		}
 	}
 	
 	private void handleLocationServiceStart(String key,
-			Map<String, String> locationMap) throws IOException {
-		locationMap.put("serviceStart", getProperty(key));
+			Set<LocationLink> links) throws IOException {
+		links.add(new LocationLink(LocationType.serviceStart, new URL(getProperty(key))));
 	}
 	
 	private void handleLocationDownload(String key,
-			Map<String, String> locationMap) throws IOException {
-		locationMap.put("download", getProperty(key));
+			Set<LocationLink> links) throws IOException {
+		links.add(new LocationLink(LocationType.download, new URL(getProperty(key))));
 	}
 
 	private void handleLocationWfs(String key, String accessString,
-			GeometryType dataType, Map<String, String> locationMap) throws IOException {
+			GeometryType dataType, Set<LocationLink> links) throws IOException {
 		String[] keyArray = key.split("\\.");
 		if (GeometryType.isVector(dataType)){
+			String locationString = null;
 			if (keyArray[2].equalsIgnoreCase("wfs")){
 				//no access info
 				String rawLocationString = getProperty(key);
 				String[] locationArray = rawLocationString.split(",");
-				String locationString = locationArray[0];
-				locationMap.put("wfs", locationString + "/wfs");
+				locationString = locationArray[0];
+				links.add(new LocationLink(LocationType.wfs, new URL(locationString + "/wfs")));
 			} else if(keyArray[2].equalsIgnoreCase(accessString)){
 				String rawLocationString = getProperty(key);
 				String[] locationArray = rawLocationString.split(",");
-				String locationString = locationArray[0];
-				locationMap.put("wfs", locationString + "/wfs");
+				locationString = locationArray[0];
+				links.add(new LocationLink(LocationType.wfs, new URL(locationString + "/wfs")));
 			}
 		}
 		
 	}
 	
 	private void handleLocationWcs(String key, String accessString,
-			GeometryType dataType, Map<String, String> locationMap) throws IOException {
+			GeometryType dataType, Set<LocationLink> links) throws IOException {
 		String[] keyArray = key.split("\\.");
 		if (GeometryType.isRaster(dataType)){
 			if (keyArray[2].equalsIgnoreCase("wcs")){
@@ -136,19 +180,19 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				String rawLocationString = getProperty(key);
 				String[] locationArray = rawLocationString.split(",");
 				String locationString = locationArray[0];
-				locationMap.put("wcs", locationString + "/wcs");
+				links.add(new LocationLink(LocationType.wcs, new URL(locationString)));
 			} else if(keyArray[2].equalsIgnoreCase(accessString)){
 				String rawLocationString = getProperty(key);
 				String[] locationArray = rawLocationString.split(",");
 				String locationString = locationArray[0];
-				locationMap.put("wcs", locationString + "/wcs");
+				links.add(new LocationLink(LocationType.wcs, new URL(locationString + "/wcs")));
 			}
 		}
 		
 	}
 
 	private void handleLocationWms(String key, String accessString,
-			Map<String, String> locationMap) throws IOException {
+			Set<LocationLink> links) throws IOException {
 		String[] keyArray = key.split("\\.");
 		if (keyArray[2].equalsIgnoreCase("wms")){
 			//no access info
@@ -160,7 +204,8 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				locationString += ",";
 			}
 			locationString = locationString.substring(0, locationString.length() - 1);
-			locationMap.put("wms", "[" + locationString + "]");
+			links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
+
 		} else if(keyArray[2].equalsIgnoreCase(accessString)){
 			String rawLocationString = getProperty(key);
 			String[] locationArray = rawLocationString.split(",");
@@ -170,11 +215,11 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				locationString += ",";
 			}
 			locationString = locationString.substring(0, locationString.length() - 1);
-			locationMap.put("wms", "[" + locationString + "]");
+			links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
 		}
 	}
 
-	private void handleLocationGeoserver(String key, String accessString, GeometryType dataType, Map<String, String> locationMap) throws IOException {
+	private void handleLocationGeoserver(String key, String accessString, GeometryType dataType, Set<LocationLink> links) throws IOException {
 		String[] keyArray = key.split("\\.");
 		if (keyArray[2].equalsIgnoreCase("geoserver")){
 			//this is one case; no differentiation b/w access levels
@@ -186,11 +231,11 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				locationString += ",";
 			}
 			locationString = locationString.substring(0, locationString.length() - 1);
-			locationMap.put("wms", "[" + locationString + "]");
+			links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
 			if (GeometryType.isVector(dataType)){
-				locationMap.put("wfs", locationArray[0] + "/wfs");
+				links.add(new LocationLink(LocationType.wfs, new URL(locationArray[0] + "/wfs")));
 			} else if (GeometryType.isRaster(dataType)){
-				locationMap.put("wcs", locationArray[0]+ "/wcs");
+				links.add(new LocationLink(LocationType.wcs, new URL(locationArray[0]+ "/wcs")));
 			}
 		} else if(keyArray[2].equalsIgnoreCase(accessString)){
 			if (keyArray[3].equalsIgnoreCase("geoserver")){
@@ -203,13 +248,14 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 					locationString += ",";
 				}
 				locationString = locationString.substring(0, locationString.length() - 1);
-				locationMap.put("wms", "[" + locationString + "]");
+				links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
 				if (GeometryType.isVector(dataType)){
-					locationMap.put("wfs", locationArray[0] + "/wfs");
+					links.add(new LocationLink(LocationType.wfs, new URL(locationArray[0] + "/wfs")));
 				} else if (GeometryType.isRaster(dataType)){
-					locationMap.put("wcs", locationArray[0] + "/wcs");
+					links.add(new LocationLink(LocationType.wcs, new URL(locationArray[0]+ "/wcs")));
 				}
 			}
 		}
 	}
+
 }

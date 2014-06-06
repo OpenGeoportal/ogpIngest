@@ -29,7 +29,7 @@ public class PaperSolrIngest extends AbstractSolrIngest implements SolrIngest {
 
 	@Override
 	public String processLocation() {
-		return metadata.getLocation();
+		return locationLinksToString(metadata.getLocation());
 	}
 
 	@Override

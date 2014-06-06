@@ -14,6 +14,14 @@
     line-height: 40px;
 }
 
+.control-group label,span {
+	display: inline-block;
+}
+
+.cleanform {
+	margin: 0px !important;
+}
+
 .headerText {
 	color: #333333;
 	font-size: 24px;
@@ -31,3 +39,34 @@
 	max-height: 40px;
 }
 
+.keywordContainer h5 {
+	display: inline-block;
+}
+
+.keywordContainer input[type="text"] {
+	display: inline-block;
+	width: 20px;
+}
+.sortableRequirements { list-style-type: none; margin: 0; float: left; margin-right: 10px; width: 100%; min-height: 50px; }
+.sortableRequirements li { margin: 0 5px 5px 5px; padding: 5px; font-size: 1.2em; }
+
+.keywordContainer {
+    display: inline-block;
+    height: 165px;
+    width: 400px;
+    overflow: auto;
+    vertical-align: top;
+}
+
+.keywordItem{
+	width: 350px;
+	overflow:hidden;
+}
+
+.keywordItem .value {
+	visibility: hidden;
+}
+
+.hiddenCheckboxes {
+	display: none;
+}

@@ -1,17 +1,21 @@
 package org.OpenGeoPortal.Ingest;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
+import org.OpenGeoPortal.Keyword.PlaceKeywords;
+import org.OpenGeoPortal.Keyword.ThemeKeywords;
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.BoundingBox;
 import org.OpenGeoPortal.Layer.GeometryType;
+import org.OpenGeoPortal.Layer.LocationLink;
+import org.OpenGeoPortal.Layer.LocationLink.LocationType;
 import org.OpenGeoPortal.Layer.Metadata;
-import org.OpenGeoPortal.Layer.PlaceKeywords;
-import org.OpenGeoPortal.Layer.PlaceKeywords.PlaceKeywordAuthority;
-import org.OpenGeoPortal.Layer.ThemeKeywords;
-import org.OpenGeoPortal.Layer.ThemeKeywords.ThemeKeywordAuthority;
 import org.OpenGeoPortal.Solr.SolrClient;
 import org.OpenGeoPortal.Solr.SolrRecord;
 import org.slf4j.Logger;
@@ -28,25 +32,6 @@ public abstract class AbstractSolrIngest implements SolrIngest
 		public Metadata metadata;
 		public SolrClient solrClient;
 		protected final Logger logger = LoggerFactory.getLogger(this.getClass());
-		public enum MetadataElement {
-			Title, 
-			Abstract, 
-			LayerName, 
-			Publisher, 
-			Originator, 
-			Bounds, 
-			ThemeKeywords, 
-			PlaceKeywords, 
-			Access,
-			LayerId,
-			WorkspaceName,
-			Location,
-			Institution,
-			FullText,
-			DataType,
-			Georeferenced,
-			ContentDate
-		}
 		
 		Set<MetadataElement> requiredElementsSet = new HashSet<MetadataElement>();
 		protected SolrIngestResponse solrIngestResponse;
@@ -64,6 +49,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				this.metadata = metadata;
 		}
 		
+		
 		public SolrIngestResponse auditSolr(Metadata metadata, Set<MetadataElement> requiredElements) throws Exception {
 			setRequiredElements(requiredElements);
 			setMetadata(metadata);
@@ -75,6 +61,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 		
 		public SolrIngestResponse writeToSolr(Metadata metadata) throws Exception {
 			Set<MetadataElement> requiredElements = new HashSet<MetadataElement>();
+			//LayerId, LayerName, and Title are always required
 			requiredElements.add(MetadataElement.LayerId);
 			requiredElements.add(MetadataElement.LayerName);
 			requiredElements.add(MetadataElement.Title);
@@ -151,13 +138,13 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				solrIngestResponse.addError("Content Date", "Date", "Unspecified error setting value.", "");
 			}
 			try{
-				solrRecord.setThemeKeywords(processThemeKeywords());
+				//solrRecord.setThemeKeywords(processThemeKeywords());
 			} catch (Exception e){
 				solrIngestResponse.addError("Theme Keywords", "themekeywords", "Unspecified error setting value.", "");
 				e.printStackTrace();
 			}
 			try{
-				solrRecord.setPlaceKeywords(processPlaceKeywords());
+				//solrRecord.setPlaceKeywords(processPlaceKeywords());
 			} catch (Exception e){
 				solrIngestResponse.addError("Place Keywords", "placekeywords", "Unspecified error setting value.", "");
 			}
@@ -255,30 +242,29 @@ public abstract class AbstractSolrIngest implements SolrIngest
 		
 		public String processPlaceKeywords() {
 			List<PlaceKeywords> placeKeywords = metadata.getPlaceKeywords();
-			logger.info("place keywords");
+			logger.debug("place keywords");
 			for (PlaceKeywords placeKeyword: placeKeywords){
-				logger.info("Keyword Authority: " + placeKeyword.getKeywordAuthority().getAuthorityId());
+				logger.debug("Keyword Authority: " + placeKeyword.getKeywordThesaurus().getPreferredThesaurusName());
 				for (String keywordString : placeKeyword.getKeywords()){
-					logger.info("Keyword: " + keywordString);
+					logger.debug("Keyword: " + keywordString);
 				}
 			}
 
 			if (requiredElementsSet.contains(MetadataElement.PlaceKeywords)){
-				if (verifyPlaceAuthorities(placeKeywords)){
 					if (placeKeywords.isEmpty()){
 						this.solrIngestResponse.addError("PlaceKeyword", "PlaceKeyword", "Missing Keywords", "No Place Keywords found");
+					} else {
+						//check keyword constraints
+						
 					}
 
-				} else {
-					
-				}
 			}
 			return getPlaceKeywordsAsString(placeKeywords);
 			
 		}
 			
 		
-		private Boolean verifyPlaceAuthorities(List<PlaceKeywords> placeKeywords) {
+		/*private Boolean verifyPlaceAuthorities(List<PlaceKeywords> placeKeywords) {
 			Boolean verified = false;
 			for (PlaceKeywords placeKeyword: placeKeywords){
 				PlaceKeywordAuthority currentAuthority = placeKeyword.getKeywordAuthority();
@@ -299,16 +285,16 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			}
 					
 			return verified;
-		}
+		}*/
 
-		private Boolean verifyThemeAuthorities(List<ThemeKeywords> themeKeywords){
+		/*private Boolean verifyThemeAuthorities(List<ThemeKeywords> themeKeywords){
 			Boolean fgdc = false;
 			Boolean iso = false;
 			Boolean lcsh = false;
 			Set<String> missingAuthorities = new HashSet<String>();
 
 			for (ThemeKeywords themeKeyword: themeKeywords){
-				ThemeKeywordAuthority currentAuthority = themeKeyword.getKeywordAuthority();
+				ThemeKeywordThesaurus currentAuthority = (ThemeKeywordThesaurus) themeKeyword.getKeywordThesaurus();
 				if (currentAuthority.equals(ThemeKeywordAuthority.FGDCKeywords)){
 					if (!themeKeyword.getKeywords().isEmpty()){
 						fgdc = true;
@@ -324,13 +310,13 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				}
 			}
 			if (!fgdc){
-				missingAuthorities.add(ThemeKeywordAuthority.FGDCKeywords.getAuthorityId());
+				missingAuthorities.add(ThemeKeywordAuthority.FGDCKeywords.getAuthorityId()[0]);
 			}
 			if (!iso){
-				missingAuthorities.add(ThemeKeywordAuthority.ISOKeywords.getAuthorityId());
+				missingAuthorities.add(ThemeKeywordAuthority.ISOKeywords.getAuthorityId()[0]);
 			}
 			if (!lcsh){
-				missingAuthorities.add(ThemeKeywordAuthority.LCSHKeywords.getAuthorityId());
+				missingAuthorities.add(ThemeKeywordAuthority.LCSHKeywords.getAuthorityId()[0]);
 			}
 			Boolean verified = fgdc && iso && lcsh;
 			if (!verified){
@@ -343,24 +329,25 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			}
 					
 			return verified;
-		}
+		}*/
 		
 			public String processThemeKeywords() {
 				List<ThemeKeywords> themeKeywords = metadata.getThemeKeywords();
-				logger.info("theme keywords");
+				/*logger.info("theme keywords");
 				for (ThemeKeywords themeKeyword: themeKeywords){
-					logger.info(themeKeyword.getKeywordAuthority().toString());
-					logger.info("Keyword Authority: " + themeKeyword.getKeywordAuthority().getAuthorityId());
+					logger.info(themeKeyword.getKeywordThesaurus().getPreferredThesaurusName());
+					logger.info("Keyword Authority: " + themeKeyword.getKeywordThesaurus().getPreferredThesaurusName());
 					for (String keywordString : themeKeyword.getKeywords()){
 						logger.info("Keyword: " + keywordString);
 					}
-				}
+				}*/
 				if (requiredElementsSet.contains(MetadataElement.ThemeKeywords)){
-					if (verifyThemeAuthorities(themeKeywords)){
 						if (themeKeywords.isEmpty()){
 							this.solrIngestResponse.addError("ThemeKeyword", "ThemeKeyword", "Missing Keywords", "No Theme Keywords found");
+						} else {
+							//check keyword constraints
 						}
-					} 
+	
 				} else {
 					if (themeKeywords.isEmpty()){
 						this.solrIngestResponse.addWarning("ThemeKeyword", "ThemeKeyword", "Missing Keywords", "No Theme Keywords found");
@@ -471,6 +458,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 
 		private String processName() {
 			String name = this.metadata.getOwsName();
+			logger.info("OWS Name: " + name);
 			String message = "Empty Name value";
 			String field = "LayerName";
 			String nativeName = "Name";
@@ -485,7 +473,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 					name = "";
 				}
 			}
-			return name.toUpperCase();
+			return name;
 		}
 
 		public String processFullText(){
@@ -725,8 +713,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 			return null;
 		}
 		
-		protected Boolean checkIsoThemes(Set<String> documentThemes)
-		{
+		/*protected Boolean checkIsoThemes(Set<String> documentThemes){
 			String[] isoThemeKeywords = {"farming", "biota", "boundaries", "climatologyMeteorologyAtmosphere", "economy",
 					"elevation", "environment", "geoscientificInformation", "health", "imageryBaseMapsEarthCover", 
 					"intelligenceMilitary", "inlandWaters", "location", "oceans", "planningCadastre", "society", 
@@ -739,7 +726,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				}
 			}
 			return false;
-		}
+		}*/
 		
 		/**
 		 * document should have ISO and LCSH/FGDC themes defined if not, added to
@@ -747,7 +734,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 		 * 
 		 * @param String locationThemes
 		 */
-		protected Boolean checkLocationThemes(String locationThemes) {
+		/*protected Boolean checkLocationThemes(String locationThemes) {
 			Boolean locationThemesOk = true;
 			if (locationThemes == null){
 				locationThemesOk = false;
@@ -756,5 +743,52 @@ public abstract class AbstractSolrIngest implements SolrIngest
 				//missingParseTags.add("LCSH/FGDC theme");
 			}
 			return locationThemesOk;
+		}*/
+		
+		protected String locationLinksToString(Set<LocationLink> links){
+			String locationString = "";
+			Iterator<LocationLink> locationLinkIter = links.iterator();
+			Map<LocationType, Set<LocationLink>> locationMap = new HashMap<LocationType, Set<LocationLink>>();
+			while (locationLinkIter.hasNext()){
+				//we need to gather duplicate location types here
+				LocationLink currentLocationLink = locationLinkIter.next();
+				if (locationMap.containsKey(currentLocationLink.getLocationType())){
+					locationMap.get(currentLocationLink.getLocationType()).add(currentLocationLink);
+				} else {
+					Set<LocationLink> newLinkType = new HashSet<LocationLink>();
+					newLinkType.add(currentLocationLink);
+					locationMap.put(currentLocationLink.getLocationType(), newLinkType);
+				}
+
+			}
+			for (LocationType type : locationMap.keySet()){
+				Set<LocationLink> values = locationMap.get(type);
+				if (type.isArray){
+					String urlArray = "\"" + type.toString() + "\": [";
+					for (LocationLink currentLink: values){
+						urlArray +=  "\"" + currentLink.getURL() + "\","; 
+					}
+					urlArray = urlArray.substring(0, urlArray.length() - 1);
+					urlArray +=	 "]";
+					locationString += urlArray + ",";
+				} else {
+					if (values.size() == 1){
+						locationString += values.toArray()[0].toString() + ",";
+					} else {
+						//make some decision about which value gets passed in
+						locationString += values.toArray()[0].toString() + ",";
+					}
+				}
+			}
+			/*logger.info("Link:" + currentLocationLink.toString());
+			if (!currentLocationLink.getLocationType().isArray){
+				locationString += currentLocationLink.toString() + ",";
+			} else {
+				
+			}*/
+			if (!locationString.isEmpty()){
+				locationString = "{" + locationString.substring(0, locationString.length() - 1) + "}";
+			}
+			return locationString;
 		}
 }

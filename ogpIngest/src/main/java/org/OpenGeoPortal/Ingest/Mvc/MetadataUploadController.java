@@ -10,8 +10,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.OpenGeoPortal.Ingest.AbstractSolrIngest.MetadataElement;
 import org.OpenGeoPortal.Ingest.MetadataUploadSubmitter;
+import org.OpenGeoPortal.Ingest.Metadata.MetadataElement;
 import org.OpenGeoPortal.Utilities.AjaxUtils;
 import org.OpenGeoPortal.Utilities.FileUtils;
 import org.slf4j.Logger;
@@ -37,8 +37,7 @@ public class MetadataUploadController {
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
     private static final Map<String, MetadataElement> elementMap;
-    static
-    {
+    static {
         elementMap = new HashMap<String, MetadataElement>();
         elementMap.put("title", MetadataElement.Title);
         elementMap.put("abstract", MetadataElement.Abstract);
