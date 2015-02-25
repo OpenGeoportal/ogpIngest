@@ -485,7 +485,7 @@ public abstract class AbstractSolrIngest implements SolrIngest
 					name = "";
 				}
 			}
-			return name.toUpperCase();
+			return name;
 		}
 
 		public String processFullText(){
