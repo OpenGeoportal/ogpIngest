@@ -74,6 +74,8 @@ public class OwsSolrIngest extends AbstractSolrIngest implements SolrIngest {
 			propertyLinks.removeAll(unneededLinks);
 			links.addAll(propertyLinks);
 		} catch (Exception e){
+            logger.error(e.getMessage());
+            e.printStackTrace();
 			this.solrIngestResponse.addWarning("location", "location", "Online Location Error getting links from properties files:" + e.getMessage(), "");
 		}
 		location = locationLinksToString(links);

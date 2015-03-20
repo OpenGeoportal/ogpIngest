@@ -76,6 +76,8 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 		return links;
 
 		} catch (Exception e){
+            logger.error(e.getMessage());
+            e.printStackTrace();
 			throw new IOException();
 		}
 	}
@@ -209,13 +211,8 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 		} else if(keyArray[2].equalsIgnoreCase(accessString)){
 			String rawLocationString = getProperty(key);
 			String[] locationArray = rawLocationString.split(",");
-			String locationString = "";
-			for (int i=0; i < locationArray.length; i++){
-				locationString += "\"" + locationArray[i] + "/wms\"";
-				locationString += ",";
-			}
-			locationString = locationString.substring(0, locationString.length() - 1);
-			links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
+
+			links.add(new LocationLink(LocationType.wms, new URL(locationArray[0] + "/wms")));
 		}
 	}
 
@@ -231,7 +228,7 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				locationString += ",";
 			}
 			locationString = locationString.substring(0, locationString.length() - 1);
-			links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
+			links.add(new LocationLink(LocationType.wms, new URL(locationArray[0] + "/wms")));
 			if (GeometryType.isVector(dataType)){
 				links.add(new LocationLink(LocationType.wfs, new URL(locationArray[0] + "/wfs")));
 			} else if (GeometryType.isRaster(dataType)){
@@ -242,13 +239,8 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				//we can assign all ows values
 				String rawLocationString = getProperty(key);
 				String[] locationArray = rawLocationString.split(",");
-				String locationString = "";
-				for (int i=0; i < locationArray.length; i++){
-					locationString += "\"" + locationArray[i] + "/wms\"";
-					locationString += ",";
-				}
-				locationString = locationString.substring(0, locationString.length() - 1);
-				links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
+
+				links.add(new LocationLink(LocationType.wms, new URL(locationArray[0] + "/wms")));
 				if (GeometryType.isVector(dataType)){
 					links.add(new LocationLink(LocationType.wfs, new URL(locationArray[0] + "/wfs")));
 				} else if (GeometryType.isRaster(dataType)){

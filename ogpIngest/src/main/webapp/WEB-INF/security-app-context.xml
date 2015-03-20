@@ -13,21 +13,21 @@
 	    <security:intercept-url pattern="/login*" access="permitAll"/>  
     	<!--<security:intercept-url pattern="/solrDelete" access="hasRole('ROLE_ADMIN')"/>-->
     	<security:form-login login-page="/login" default-target-url="/metadataUpload" authentication-failure-url="/loginfailed" />
-    	<security:intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')" requires-channel="http"/>
+    	<security:intercept-url pattern="/**" access="hasRole('ROLE_ADMIN')" />
 		<security:logout/>
 	</security:http>
 
-	<!--<security:ldap-server url="ldaps://ldap.tufts.edu:636/ou=People,dc=tufts,dc=edu" />-->
+	<!-- <security:ldap-server url="ldaps://ldap.tufts.edu:636/ou=People,dc=tufts,dc=edu" />-->
 	<security:authentication-manager alias="authenticationManager" >
-		<security:authentication-provider>
+			<security:authentication-provider>
 			<security:user-service>
-				<security:user name="ogpAdmin" password="pachyderm"
+				<security:user name="ogpAdmin" password="koala"
 					authorities="ROLE_ADMIN, ROLE_USER" />
-				<security:user name="ogpUser" password="jumbo"
+				<security:user name="ogpUser" password="wombat"
 					authorities="ROLE_USER" />
 			</security:user-service>
 		</security:authentication-provider>
-		<!--<security:ldap-authentication-provider user-search-filter="(uid={0})"
+		<!-- <security:ldap-authentication-provider user-search-filter="(uid={0})"
 		user-context-mapper-ref="userDetailsMapper.custom" />-->
 	</security:authentication-manager>
 </beans:beans>

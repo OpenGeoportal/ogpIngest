@@ -107,12 +107,13 @@ http://linuxdev.lib.berkeley.edu:8080/geoserver/UCB/wms?service=WMS&version=1.1.
 			//must be zipFile, download
 			return true;
 		}
-		if (link.endsWith(".zip"))
-			return true;
-		if (link.endsWith(".gz"))
-			return true;
-		if (link.toLowerCase().contains("download"))
-			return true;
+		 else if (link.endsWith(".zip")) {
+            return true;
+        } else if (link.endsWith(".gz")) {
+            return true;
+        } else if (link.toLowerCase().contains("download")) {
+            return true;
+        }
 		return false;
 	}
 	

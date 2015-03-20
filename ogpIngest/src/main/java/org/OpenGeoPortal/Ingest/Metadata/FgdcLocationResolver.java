@@ -39,7 +39,7 @@ public class FgdcLocationResolver extends AbstractLocationResolver implements
 		Set<String> serviceLinks = getLinksFromTagType("onlink", xmlDocument);
 		//look at the links, determine if it's an ows, zip, other filetype
 		Iterator<String> serviceIterator = serviceLinks.iterator();
-		if (serviceIterator.hasNext()){
+		while (serviceIterator.hasNext()){
 			String serviceLink = serviceIterator.next();
 			URL serviceURL = null;
 			try {
@@ -55,7 +55,7 @@ public class FgdcLocationResolver extends AbstractLocationResolver implements
 		
 		Set<String> browseLinks = getLinksFromTagType("browsen", xmlDocument);
 		Iterator<String> browseIterator = browseLinks.iterator();
-		if (browseIterator.hasNext()){
+		while (browseIterator.hasNext()){
 			//we just need one
 			String browseLink = browseIterator.next();
 			URL browseURL = null;
