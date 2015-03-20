@@ -6,13 +6,13 @@ import java.util.ArrayList;
 import org.OpenGeoPortal.Geoserver.REST.GeoserverRestClient;
 import org.OpenGeoPortal.Layer.GeometryType;
 import org.OpenGeoPortal.Layer.Metadata;
-import org.OpenGeoPortal.Utilities.OgpLogger;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleGeoServerIngest implements MapServerIngest {
 	IngestProperties ingestProperties;
-	@OgpLogger
-	Logger logger;
+	final Logger logger = LoggerFactory.getLogger(this.getClass());
+
 	GeoserverRestClient gsrc = null;
 	
 	public void setIngestProperties(IngestProperties ingestProperties) {

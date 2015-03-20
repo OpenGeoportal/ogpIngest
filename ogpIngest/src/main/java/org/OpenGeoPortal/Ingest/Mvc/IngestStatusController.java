@@ -6,6 +6,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.OpenGeoPortal.Ingest.IngestStatus;
 import org.OpenGeoPortal.Ingest.IngestStatusManager;
+import org.OpenGeoPortal.Ingest.IngestStatusResponse;
 import org.OpenGeoPortal.Utilities.AjaxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,8 +35,14 @@ public class IngestStatusController {
 	}
 	
 	@RequestMapping(method=RequestMethod.GET, produces="application/json")
-	public @ResponseBody IngestStatus getIngestStatus(@RequestParam("jobId") String jobId, Model model)  {
-		IngestStatus ingestStatus = ingestStatusManager.getIngestStatus(UUID.fromString(jobId));
+	public @ResponseBody IngestStatusResponse getIngestStatus(@RequestParam("jobId") String jobId, Model model)  {
+		IngestStatusResponse ingestStatus = null;
+		try {
+			ingestStatus = (IngestStatusResponse) ingestStatusManager.getNewIngestStatus(UUID.fromString(jobId));
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		model.addAttribute("ingestStatus", ingestStatus);
 
 		return ingestStatus;

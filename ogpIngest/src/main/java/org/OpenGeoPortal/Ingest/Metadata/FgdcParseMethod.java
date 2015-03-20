@@ -3,10 +3,15 @@ package org.OpenGeoPortal.Ingest.Metadata;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.OpenGeoPortal.Keyword.PlaceKeywordThesaurusResolver;
+import org.OpenGeoPortal.Keyword.PlaceKeywords;
+import org.OpenGeoPortal.Keyword.ThemeKeywordThesaurusResolver;
+import org.OpenGeoPortal.Keyword.ThemeKeywords;
+import org.OpenGeoPortal.Keyword.KeywordThesauri.PlaceKeywordThesaurus;
+import org.OpenGeoPortal.Keyword.KeywordThesauri.ThemeKeywordThesaurus;
 import org.OpenGeoPortal.Layer.AccessLevel;
 import org.OpenGeoPortal.Layer.GeometryType;
-import org.OpenGeoPortal.Layer.PlaceKeywords;
-import org.OpenGeoPortal.Layer.ThemeKeywords;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -25,6 +30,8 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 		Title("title", FieldType.Single), 
 		Abstract("abstract", FieldType.Single), 
 		LayerName("ftname", FieldType.Single), 
+		ResourceDescription("resdesc", FieldType.Single), 
+		EntityTypeLabel("enttypl", FieldType.Single), 
 		Publisher("publish", FieldType.Single), 
 		Originator("origin", FieldType.Single), 
 		WestBc("westbc", FieldType.Single), 
@@ -57,10 +64,71 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 		}
 	}
 	
+	@Autowired
+	ThemeKeywordThesaurusResolver themeKeywordThesaurusResolver;
+	
+	@Autowired
+	PlaceKeywordThesaurusResolver placeKeywordThesaurusResolver;
+
+	/**
+	 * return the correct value for the title tag
+	 * @param tagName
+	 * @return
+	 * @throws Exception 
+	 */
+	protected String getTitleValue() throws Exception
+	{
+		String tagName = "title";
+		String tagValue = "";
+		NodeList nodes = document.getElementsByTagName(tagName);
+		logger.debug(" tagName = " + tagName + " nodes length = " + nodes.getLength());
+		Node titleNode = null;
+		for (int i = 0; i < nodes.getLength(); i++){
+			if (nodes.item(i).getParentNode().getParentNode().getNodeName().equalsIgnoreCase("citation")){
+				titleNode = nodes.item(i);
+				break;
+			}
+		}
+		
+		if (nodes.getLength() == 0){
+			tagValue = null;
+		} else {
+			short nodeType = titleNode.getNodeType();
+			if (nodeType == Node.TEXT_NODE){
+					tagValue = titleNode.getNodeValue();
+					//logger.info("<" + tagName + ">:" + tagValue);
+			} else if (titleNode.hasChildNodes()){
+				NodeList children = titleNode.getChildNodes();
+				for (int j = 0; j < children.getLength(); j++){
+					Node currentChild = children.item(j);
+					short childNodeType = currentChild.getNodeType();
+					if (childNodeType == Node.TEXT_NODE){
+						tagValue = currentChild.getNodeValue();
+						//logger.info("<" + tagName + ">:" + tagValue);
+						break;//found a text node, so exit
+					}
+				}
+			} 
+		}
+		
+			
+		if ((tagValue == null) || (tagValue.length() == 0)){
+			logger.error("No tag value found [" + tagName + "]");		
+		}
+	
+		try {
+			return getValidValue(tagValue);
+		} catch (Exception e){
+			numberOfParseWarnings++;
+			missingParseTags.add(tagName);
+			throw new Exception(e.getMessage());
+		}
+	}
+	
 	void handleTitle(){
 		Tag tag = FgdcTag.Title;
 		try{
-			this.metadataParseResponse.metadata.setTitle(getDocumentValue(tag));
+			this.metadataParseResponse.metadata.setTitle(getTitleValue());
 		} catch (Exception e){
 			logger.error("handleTitle: " + e.getMessage());
 			this.metadataParseResponse.addWarning(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
@@ -124,7 +192,10 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 							if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.PlaceKeywordsThesaurus.getTagName())){
 								logger.info("thesaurus: " + currentKeywordChild.getTextContent());
 								try {
-									placeKeywords.setThesaurus(getValidValue(currentKeywordChild.getTextContent()));
+									String rawThesaurus = getValidValue(currentKeywordChild.getTextContent());
+									PlaceKeywordThesaurus keywordThesaurus = placeKeywordThesaurusResolver.getPlaceKeywordThesaurus(rawThesaurus);
+									placeKeywords.setKeywordThesaurus(keywordThesaurus);
+									
 								} catch (DOMException e) {
 									// TODO Auto-generated catch block
 									e.printStackTrace();
@@ -156,13 +227,15 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 							Node currentKeywordChild = currentKeywordChildren.item(i);
 
 							if (currentKeywordChild.getNodeType() == 1){
-								logger.info("node value: " + currentKeywordChild.getNodeValue());
+								//logger.info("node value: " + currentKeywordChild.getNodeValue());
 								logger.info("node name: " + currentKeywordChild.getNodeName());
-								logger.info("node type: " + currentKeywordChild.getNodeType());
+								//logger.info("node type: " + currentKeywordChild.getNodeType());
 								if (currentKeywordChild.getNodeName().equalsIgnoreCase(FgdcTag.ThemeKeywordsThesaurus.getTagName())){
 									logger.info("thesaurus: " + currentKeywordChild.getTextContent());
 									try {
-										themeKeywords.setThesaurus(getValidValue(currentKeywordChild.getTextContent()));
+										String rawThesaurus = getValidValue(currentKeywordChild.getTextContent());
+										ThemeKeywordThesaurus keywordThesaurus = themeKeywordThesaurusResolver.getThemeKeywordThesaurus(rawThesaurus);
+										themeKeywords.setKeywordThesaurus(keywordThesaurus);
 									} catch (DOMException e) {
 
 									} catch (Exception e) {
@@ -190,45 +263,6 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 		this.metadataParseResponse.metadata.setPlaceKeywords(placeKeywordList);
 	}
 			
-			
-			
-	/*		
-			outerloop:
-			for (int i = 0; i < nodes.getLength(); i++){
-				Node currentNode = nodes.item(i);
-				short nodeType = currentNode.getNodeType();
-				if (nodeType == Node.TEXT_NODE){
-					tagValue = currentNode.getNodeValue();
-					//logger.info("<" + tagName + ">:" + tagValue);
-					break;//found a text node, so exit
-				}
-				if (currentNode.hasChildNodes()){
-					NodeList children = currentNode.getChildNodes();
-					for (int j = 0; j < children.getLength(); j++){
-						Node currentChild = children.item(j);
-						short childNodeType = currentChild.getNodeType();
-						if (childNodeType == Node.TEXT_NODE){
-							tagValue = currentChild.getNodeValue();
-							//logger.info("<" + tagName + ">:" + tagValue);
-							break outerloop;//found a text node, so exit
-						}
-					}
-				} 
-			}
-		}
-			
-		if ((tagValue == null) || (tagValue.length() == 0)){
-			logger.error("No tag value found [" + tagName + "]");		
-		}
-	
-		try {
-			//return getValidValue(tagValue);
-		} catch (Exception e){
-			numberOfParseWarnings++;
-			missingParseTags.add(tagName);
-			//throw new Exception(e.getMessage());
-		}
-	}*/
 
 
 	/**
@@ -383,14 +417,36 @@ public class FgdcParseMethod extends AbstractXmlMetadataParseMethod implements
 	}
 
 	@Override
-	void handleLayerName() {
+	String getLayerName() {
 		Tag tag = FgdcTag.LayerName;
+		
+		String tagValue = null;
 		try {
-			this.metadataParseResponse.metadata.setOwsName(getDocumentValue(tag));
+			tagValue = getDocumentValue(tag);
+			logger.info("ftname tag value:" + tagValue);
 		} catch (Exception e) {
-			logger.error("handleLayerName: " + e.getMessage());
-			this.metadataParseResponse.addError(tag.toString(), tag.getTagName(), e.getClass().getName(), e.getMessage());
+			tag = FgdcTag.ResourceDescription;
+			try {
+				tagValue = getDocumentValue(tag);
+				logger.info("resdesc tag value:" + tagValue);
+				if (tagValue.contains(" ")){
+					throw new Exception("<resdesc> does not hold a valid value for layer name.");
+				}
+			} catch (Exception e1) {
+				tag = FgdcTag.EntityTypeLabel;
+				try {
+					tagValue = getDocumentValue(tag);
+					logger.info("enttypl tag value:" + tagValue);
+					if (tagValue.contains(" ")){
+						throw new Exception("<enttypl> does not hold a valid value for layer name.");
+					}
+				} catch (Exception e2) {
+					logger.error("getLayerName: " + e2.getMessage());
+				}
+			}
 		}
+		
+		return tagValue;
 	}
 
 	@Override

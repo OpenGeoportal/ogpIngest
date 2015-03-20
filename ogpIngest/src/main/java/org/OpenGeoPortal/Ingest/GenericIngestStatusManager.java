@@ -19,6 +19,16 @@ public class GenericIngestStatusManager implements IngestStatusManager {
 		}
 		return null;
 	}
+	
+	public synchronized IngestStatus getNewIngestStatus(UUID jobId) throws Exception {
+		for (GlobalIngestStatus status: globalIngestStatus){
+			if (status.getJobId().equals(jobId)){
+				IncrementalIngestStatus ingestStatus = (IncrementalIngestStatus) status.getIngestStatus();
+				return ingestStatus.createUpdateStatus();
+			}
+		}
+		return null;
+	}
 
 	private synchronized List<GlobalIngestStatus> getStatusBySessionId(String sessionId){
 		List<GlobalIngestStatus> sessionStatus = new ArrayList<GlobalIngestStatus>();

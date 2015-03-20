@@ -1,6 +1,7 @@
 package org.OpenGeoPortal.Ingest;
 
 import java.net.MalformedURLException;
+import java.util.Iterator;
 import java.util.List;
 import java.util.UUID;
 
@@ -10,6 +11,8 @@ import org.apache.solr.client.solrj.SolrQuery;
 import org.apache.solr.client.solrj.impl.HttpSolrServer;
 import org.apache.solr.client.solrj.impl.XMLResponseParser;
 import org.apache.solr.client.solrj.response.QueryResponse;
+import org.apache.solr.client.solrj.util.ClientUtils;
+import org.apache.solr.common.SolrDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,7 +23,7 @@ public class BasicRemoteSolrIngestJob implements RemoteSolrIngestJob, Runnable {
 	private String solrUrl;
 	private UUID jobId;
 	private IngestStatus ingestStatus;
-	
+
 	final Logger logger = LoggerFactory.getLogger(this.getClass());
 
 	int fetchSize = 50;
@@ -28,71 +31,100 @@ public class BasicRemoteSolrIngestJob implements RemoteSolrIngestJob, Runnable {
 	private void getSolrRecords() throws MalformedURLException{
 		ingestStatus = ingestStatusManager.getIngestStatus(jobId);
 		//the client for the external solr
+		logger.info(solrUrl);
 		HttpSolrServer solrCore = new HttpSolrServer(solrUrl);
 		solrCore.setParser(new XMLResponseParser());
 
 		try{
-		int recordCount = 0;
-		int totalCount = 0;
-		do {
-			//perform the query
-			QueryResponse rsp = null;
-			try{
-				SolrQuery query = new SolrQuery();
-				query.setQuery( "Institution:" + institution );
-				query.setRows(fetchSize);
-				query.setStart(recordCount);
-				rsp = solrCore.query(query);
-			} catch (Exception e){
-				logger.error("query failed");
-				ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "query failed");
-			}
-			if (totalCount == 0){
-				totalCount = (int) rsp.getResults().getNumFound();
-				logger.info("Number found: " + Integer.toString(totalCount));
-			}
-			List<SolrExchangeRecord> beans = null;
-			//List<SolrDocument> solrdocs = null;
-			try{
-				//unmarshall the results from the query
-				//solrdocs = rsp.getResults();
-				beans = rsp.getBeans(SolrExchangeRecord.class);	 
-				if (!beans.isEmpty()){
-				//if(!solrdocs.isEmpty()){
-					try {
-						//write the records to the local solr instance
-						//Boolean solrClientExists = (solrClient != null);
-						//logger.info("solrclientexists?: " + Boolean.toString(solrClientExists));
-						//solrClient.getSolrServer().
-						solrClient.getSolrServer().addBeans(beans);
-						/*Iterator<SolrDocument> docsiterator = solrdocs.iterator();
+			int recordCount = 0;
+			int totalCount = 0;
+			do {
+				//perform the query
+				QueryResponse rsp = null;
+				try{
+					SolrQuery query = new SolrQuery();
+					query.setQuery( "Institution:" + institution );
+					query.setRows(fetchSize);
+					query.setStart(recordCount);
+					rsp = solrCore.query(query);
+					logger.info("Retrieved records!");
+				} catch (Exception e){
+					logger.error("query failed");
+					ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "query failed");
+				}
+				if (totalCount == 0){
+					totalCount = (int) rsp.getResults().getNumFound();
+					logger.info("Number found: " + Integer.toString(totalCount));
+				}
+				List<SolrExchangeRecord> beans = null;
+				List<SolrDocument> solrdocs = null;
+				try{
+					//unmarshall the results from the query
+					//solrdocs = rsp.getResults();
+					beans = rsp.getBeans(SolrExchangeRecord.class);	 
+					if (!beans.isEmpty()){
+						//if(!solrdocs.isEmpty()){
+						try {
+							//write the records to the local solr instance
+							//Boolean solrClientExists = (solrClient != null);
+							//logger.info("solrclientexists?: " + Boolean.toString(solrClientExists));
+							//solrClient.getSolrServer().
+							solrClient.getSolrServer().addBeans(beans);
+							logger.info("Added records!");
+							/*Iterator<SolrDocument> docsiterator = solrdocs.iterator();
 						HttpSolrServer solr = solrClient.getSolrServer();
 						while (docsiterator.hasNext()){
 							solr.add(ClientUtils.toSolrInputDocument(docsiterator.next()));
 						}*/
-					} catch (Exception e){
-						logger.error("Error setting beans" + e.getMessage());
-						ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error setting beans" + e.getMessage());
+						} catch (Exception e){
+							logger.error("Error setting beans" + e.getMessage());
+							ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error setting beans" + e.getMessage());
+						}
 					}
+				} catch (Exception e){
+					logger.error("Error getting beans" + e.getMessage());
+					logger.error("trying SolrDocument");
+					try{
+						solrdocs = rsp.getResults();
+						if(!solrdocs.isEmpty()){
+							try {
+								//write the records to the local solr instance
+								//Boolean solrClientExists = (solrClient != null);
+								//logger.info("solrclientexists?: " + Boolean.toString(solrClientExists));
+								//solrClient.getSolrServer().
+
+								Iterator<SolrDocument> docsiterator = solrdocs.iterator();
+								HttpSolrServer solr = solrClient.getSolrServer();
+								while (docsiterator.hasNext()){
+									solr.add(ClientUtils.toSolrInputDocument(docsiterator.next()));
+								}
+								logger.info("Added records!");
+
+							} catch (Exception e2){
+								logger.error("Error setting docs" + e.getMessage());
+								ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error setting docs" + e.getMessage());
+							}}
+					} catch (Exception e1){
+						logger.error("Error getting beans" + e.getMessage());
+						ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error getting beans" + e.getMessage());
+					}
+
+
 				}
-			} catch (Exception e){
-				logger.error("error getting beans" + e.getMessage());	
-				ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Error getting beans" + e.getMessage());
 
-			}
-
-			recordCount += fetchSize;
-			//the condition on this while is a little weird, but seems to work
-		} while (recordCount <= (totalCount + fetchSize));
-		//commit the additions
-		solrClient.commit();
-	} catch (Exception e){
-		logger.error(e.getMessage());
-		ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Unknown Exception: " + e.getMessage());
-	}
+				recordCount += fetchSize;
+				//the condition on this while is a little weird, but seems to work
+			} while (recordCount <= (totalCount + fetchSize));
+			//commit the additions
+			solrClient.commit();
+		} catch (Exception e){
+			logger.error("Main loop error: " + e.getMessage());
+			e.printStackTrace();
+			ingestStatus.addError("solrQuery  [Institution: " + institution + "]", "Unknown Exception: " + e.getMessage());
+		}
 		ingestStatus.setJobStatus(IngestJobStatus.Succeeded);
 	}
-	
+
 	public IngestStatusManager getIngestStatusManager() {
 		return ingestStatusManager;
 	}
@@ -108,7 +140,7 @@ public class BasicRemoteSolrIngestJob implements RemoteSolrIngestJob, Runnable {
 	public void setSolrClient(SolrClient solrClient) {
 		this.solrClient = solrClient;
 	}
-	
+
 	public void run() {
 		try{
 			getSolrRecords();

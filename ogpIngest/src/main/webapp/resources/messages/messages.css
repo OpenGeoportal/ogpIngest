@@ -4,6 +4,8 @@ div.info,div.success,div.warning,div.error {
 	padding: 15px 10px 15px 50px;
 	background-repeat: no-repeat;
 	background-position: 10px center;
+	max-height: 250px;
+    overflow: auto;
 }
 
 div.info {

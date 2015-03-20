@@ -29,6 +29,7 @@ Ingest Actions
 <li id="preprocessNav"><a href="adjustMetadata">Preprocess Metadata</a><li/>
 <li id="xmluploadNav"><a href="metadataUpload">Upload Metadata</a><li/>
 <li id="externalSolrNav"><a href="ingestExternalSolr">Ingest Records from Remote Solr Instance</a><li/>
+<li id="externalSolrByIdNav"><a href="solrToSolr">Ingest Records from Remote Solr Instance By LayerId</a><li/>
 <!-- <li id="bartonNav"><a href="ingestBarton">Ingest Map Records</a><li/>-->
 <li id="deleteNav"><a href="solrDelete">Delete Solr Layers</a><li/>
 </ol>

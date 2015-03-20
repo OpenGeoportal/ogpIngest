@@ -1,6 +1,10 @@
 package org.OpenGeoPortal.Layer;
 
 import java.util.List;
+import java.util.Set;
+
+import org.OpenGeoPortal.Keyword.PlaceKeywords;
+import org.OpenGeoPortal.Keyword.ThemeKeywords;
 
 
 public class Metadata {
@@ -10,7 +14,7 @@ public class Metadata {
 	String description;
 	String owsName;
 	String workspaceName;
-	String location;
+	Set<LocationLink> location;
 	String originator;
 	List<ThemeKeywords> themeKeywords;
 	List<PlaceKeywords> placeKeywords;
@@ -92,11 +96,14 @@ public class Metadata {
 	public void setWorkspaceName(String workspaceName) {
 		this.workspaceName = workspaceName;
 	}
-	public String getLocation() {
+	public Set<LocationLink> getLocation() {
 		return location;
 	}
-	public void setLocation(String location) {
+	public void setLocation(Set<LocationLink> location) {
 		this.location = location;
+	}
+	public void addLocation(LocationLink location){
+		this.location.add(location);
 	}
 	public String getOriginator() {
 		return originator;
