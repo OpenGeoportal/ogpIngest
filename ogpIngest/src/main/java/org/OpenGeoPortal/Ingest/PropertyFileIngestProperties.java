@@ -206,7 +206,7 @@ public class PropertyFileIngestProperties extends PropertyFileProperties impleme
 				locationString += ",";
 			}
 			locationString = locationString.substring(0, locationString.length() - 1);
-			links.add(new LocationLink(LocationType.wms, new URL("[" + locationString + "]")));
+			links.add(new LocationLink(LocationType.wms, new URL(locationString)));
 
 		} else if(keyArray[2].equalsIgnoreCase(accessString)){
 			String rawLocationString = getProperty(key);
